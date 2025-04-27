@@ -3,6 +3,7 @@ package app
 import (
 	"banking_ledger/config"
 	"banking_ledger/handlers"
+	"banking_ledger/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,11 @@ func init() {
 	userRoutes = Router.Group(SERVICE_BASE_PATH)
 }
 
+func SetupRoutesMiddleware() {
+
+	cognitoProtectedRoutes.Use(middleware.AuthTokenMiddleware())
+}
+
 func SetupHealthRoute() {
 
 	Router.GET(SERVICE_BASE_PATH+"/v1/health", handlers.GetHealth)
@@ -31,5 +37,7 @@ func SetupUserRoute() {
 }
 
 func SetupCognitoProtectedRoutes() {
+
+	cognitoProtectedRoutes.POST("/v1/account", handlers.CreateAccount)
 
 }
