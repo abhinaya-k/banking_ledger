@@ -22,6 +22,10 @@ type Config struct {
 
 var AppConfig Config
 
+var (
+	SERVICE_BASE_PATH string
+)
+
 func init() {
 	if _, err := os.Stat(".env"); err == nil {
 		err = godotenv.Load(".env")
@@ -45,6 +49,8 @@ func LoadEnv() {
 		KafkaBrokers: []string{getEnv("KAFKA_BROKER", "localhost:9092")},
 		KafkaTopic:   getEnv("KAFKA_TOPIC", "transaction_events"),
 	}
+
+	SERVICE_BASE_PATH = getEnv("SERVICE_BASE_PATH", "/bankingLedger")
 }
 
 // Helper function to read environment variable or fallback default

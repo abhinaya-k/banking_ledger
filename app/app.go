@@ -34,6 +34,8 @@ func StartApp() {
 		}
 	}()
 
+	SetupHealthRoute()
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interrupt
