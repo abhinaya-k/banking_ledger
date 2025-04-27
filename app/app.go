@@ -1,6 +1,7 @@
 package app
 
 import (
+	"banking_ledger/config"
 	"banking_ledger/middleware"
 	"fmt"
 	"os"
@@ -24,15 +25,13 @@ func init() {
 
 func StartApp() {
 
-	fmt.Println("starting")
+	SERVER_PORT := fmt.Sprintf(":%s", config.AppConfig.ServerPort)
 
 	go func() {
 		Router.Use(middleware.CorsMiddleware())
-		if err := Router.Run(":8001"); err != nil {
+		if err := Router.Run(SERVER_PORT); err != nil {
 			panic(err)
 		}
-
-		fmt.Println("app started on port:8001")
 	}()
 
 	interrupt := make(chan os.Signal, 1)
