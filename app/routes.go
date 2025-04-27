@@ -3,10 +3,22 @@ package app
 import (
 	"banking_ledger/config"
 	"banking_ledger/handlers"
+
+	"github.com/gin-gonic/gin"
 )
 
+var (
+	SERVICE_BASE_PATH      string
+	cognitoProtectedRoutes *gin.RouterGroup
+)
+
+func init() {
+	SERVICE_BASE_PATH = config.SERVICE_BASE_PATH
+	cognitoProtectedRoutes = Router.Group(SERVICE_BASE_PATH)
+}
+
 func SetupHealthRoute() {
-	Router.GET(config.SERVICE_BASE_PATH+"/v1/health", handlers.GetHealth)
+	Router.GET(SERVICE_BASE_PATH+"/v1/health", handlers.GetHealth)
 
 	Router.NoRoute(handlers.NoRoute)
 }
