@@ -2,6 +2,7 @@ package app
 
 import (
 	"banking_ledger/config"
+	"banking_ledger/database"
 	"banking_ledger/middleware"
 	"fmt"
 	"os"
@@ -25,6 +26,16 @@ func init() {
 
 func StartApp() {
 
+	defer func() {
+		database.CloseDatabasePool()
+	}()
+
+	SetupHealthRoute()
+
+	if err := database.InitializeDatabasePool(); err != nil {
+		panic(err)
+	}
+
 	SERVER_PORT := fmt.Sprintf(":%s", config.AppConfig.ServerPort)
 
 	go func() {
@@ -33,8 +44,6 @@ func StartApp() {
 			panic(err)
 		}
 	}()
-
-	SetupHealthRoute()
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
