@@ -24,6 +24,7 @@ var AppConfig Config
 
 var (
 	SERVICE_BASE_PATH string
+	JWT_SECRET        string
 )
 
 func init() {
@@ -51,6 +52,7 @@ func LoadEnv() {
 	}
 
 	SERVICE_BASE_PATH = getEnv("SERVICE_BASE_PATH", "/bankingLedger")
+	JWT_SECRET = os.Getenv("JWT_SECRET")
 }
 
 // Helper function to read environment variable or fallback default

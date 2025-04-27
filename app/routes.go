@@ -27,6 +27,7 @@ func SetupHealthRoute() {
 
 func SetupUserRoute() {
 	userRoutes.POST("/user/v1/register", handlers.RegisterUser)
+	userRoutes.POST("/user/v1/login", handlers.UserLogin)
 }
 
 func SetupCognitoProtectedRoutes() {

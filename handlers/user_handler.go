@@ -35,3 +35,28 @@ func RegisterUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.SuccessResponse{Type: "success", Message: "User Registered successfully"})
 }
+
+func UserLogin(c *gin.Context) {
+
+	var input models.LoginRequestBody
+
+	ctx := utils.GetContextFromGinContext(c)
+
+	err := c.BindJSON(&input)
+	if err != nil {
+		errMsg := fmt.Sprintf("UserLogin: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
+		logger.Log.Error(errMsg)
+		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 2001, errMsg, "", nil)
+		ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
+		c.JSON(apiError.StatusCode, apiError.ApplicationError)
+		return
+	}
+
+	response, apiError := services.UserLogin(ctx, input)
+	if apiError != nil {
+		c.JSON(apiError.StatusCode, apiError.ApplicationError)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.SuccessResponse{Type: "success", Message: response})
+}

@@ -1,7 +1,7 @@
 package models
 
 type User struct {
-	ID           string `json:"id"`
+	ID           int    `json:"id"`
 	Email        string `json:"email"`
 	PasswordHash string `json:"password"`
 	FirstName    string `json:"fistName"`
@@ -13,4 +13,13 @@ type RegisterUserReqBody struct {
 	LastName  string `json:"lastName"`
 	Email     string `json:"email" binding:"required,email"`
 	Password  string `json:"password" binding:"required,min=7"`
+}
+
+type LoginRequestBody struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+type LoginResponseBody struct {
+	Token string `json:"token" binding:"required"`
 }
