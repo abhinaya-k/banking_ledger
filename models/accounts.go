@@ -1,5 +1,7 @@
 package models
 
+import "github.com/google/uuid"
+
 type Account struct {
 	AccountID int `json:"account_id"`
 	UserID    int `json:"user_id"`
@@ -11,15 +13,17 @@ type CreateAccountRequest struct {
 }
 
 type FundTransactionRequest struct {
-	Amount          float64 `json:"amount"`
-	TransactionType string  `json:"transactionType"`
+	Amount          float64 `json:"amount" binding:"required,gt=0"`
+	TransactionType string  `json:"transactionType" binding:"required,oneof=deposit withdraw"`
 }
 
 // type FundTransactionResponse struct {
 // }
 
 type TransactionRequestKafka struct {
-	UserId          int     `json:"user_id"`
-	Amount          float64 `json:"amount"`
-	TransactionType string  `json:"transactionType"`
+	UserId          int       `json:"userId"`
+	Amount          float64   `json:"amount"`
+	TransactionType string    `json:"transactionType"`
+	RequestId       uuid.UUID `json:"requestId"`
+	TransactionTime int64     `json:"transactionTime"`
 }

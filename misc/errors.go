@@ -96,3 +96,22 @@ func ProcessError(ctx context.Context, priority int, errorMessage string, additi
 	}
 
 }
+
+func SaveDroppedMessage(ctx context.Context, topicName string, errorType string, kafkaMessageSlice []byte) {
+
+	kafkaMessage := string(kafkaMessageSlice)
+
+	droppedMessage := models.DroppedMessage{
+		TopicName:    topicName,
+		ErrorType:    errorType,
+		KafkaMessage: kafkaMessage,
+	}
+
+	appError := database.ErDb.SaveDroppedMessage(ctx, droppedMessage)
+
+	if appError != nil {
+		errorMsg := fmt.Sprintf("Could not save dropped message.AppError code:%d,AppError message:%s!", appError.Message.ErrorCode, appError.Message.ErrorMessage)
+		ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errorMsg, kafkaMessage)
+	}
+
+}
