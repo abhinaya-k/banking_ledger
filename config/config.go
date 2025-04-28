@@ -10,14 +10,16 @@ import (
 )
 
 type Config struct {
-	ServerPort   string
-	DBHost       string
-	DBPort       string
-	DBUser       string
-	DBPassword   string
-	DBName       string
-	KafkaBrokers []string
-	KafkaTopic   string
+	ServerPort    string
+	DBHost        string
+	DBPort        string
+	DBUser        string
+	DBPassword    string
+	DBName        string
+	KafkaBrokers  []string
+	KafkaTopic    string
+	KafkaUserName string
+	KafkaPassword string
 }
 
 var AppConfig Config
@@ -41,14 +43,16 @@ func init() {
 func LoadEnv() {
 
 	AppConfig = Config{
-		ServerPort:   getEnv("SERVER_PORT", "8080"),
-		DBHost:       getEnv("DB_HOST", "localhost"),
-		DBPort:       getEnv("DB_PORT", "5432"),
-		DBUser:       getEnv("DB_USER", "postgres"),
-		DBPassword:   getEnv("DB_PASSWORD", "password"),
-		DBName:       getEnv("DB_NAME", "ledgerdb"),
-		KafkaBrokers: []string{getEnv("KAFKA_BROKER", "localhost:9092")},
-		KafkaTopic:   getEnv("KAFKA_TOPIC", "transaction_events"),
+		ServerPort:    getEnv("SERVER_PORT", "8080"),
+		DBHost:        getEnv("DB_HOST", "localhost"),
+		DBPort:        getEnv("DB_PORT", "5432"),
+		DBUser:        getEnv("DB_USER", "postgres"),
+		DBPassword:    getEnv("DB_PASSWORD", "password"),
+		DBName:        getEnv("DB_NAME", "ledgerdb"),
+		KafkaBrokers:  []string{getEnv("KAFKA_BROKER", "localhost:9092")},
+		KafkaTopic:    getEnv("KAFKA_TOPIC", "transaction_events"),
+		KafkaUserName: getEnv("KAFKA_USERNAME", "admin"),
+		KafkaPassword: getEnv("KAFKA_PASSWORD", "admin"),
 	}
 
 	SERVICE_BASE_PATH = getEnv("SERVICE_BASE_PATH", "/bankingLedger")
