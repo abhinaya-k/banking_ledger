@@ -13,6 +13,7 @@ import (
 type accountDb struct{}
 
 type accountDbInterface interface {
+	BeginTx(ctx context.Context) (pgx.Tx, error)
 	GetAccountByUserId(ctx context.Context, userId int) (exists bool, account models.Account, appError *models.ApplicationError)
 	CreateAccountForUser(ctx context.Context, userId int, balance int) *models.ApplicationError
 }
@@ -61,3 +62,9 @@ func (a *accountDb) CreateAccountForUser(ctx context.Context, userId int, balanc
 
 	return nil
 }
+
+func (a *accountDb) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	return dbPool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable}) // best safety!
+}
+
+// func (a *accountDb)

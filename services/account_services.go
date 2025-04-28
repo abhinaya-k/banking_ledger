@@ -30,3 +30,24 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 	return nil
 
 }
+
+func FundTransaction(ctx context.Context, userId int, req models.FundTransactionRequest) *models.ApiError {
+
+	if req.TransactionType != "deposit" || req.TransactionType != "withdraw" {
+		errMsg := "Incorrect RequestBody!"
+		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+	}
+
+	exists, _, appError := database.AccDb.GetAccountByUserId(ctx, userId)
+	if appError != nil {
+		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
+	}
+
+	if !exists {
+		errMsg := "Account does not exists for this user!"
+		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+	}
+
+	return nil
+
+}

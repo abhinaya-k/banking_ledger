@@ -9,3 +9,11 @@ type Account struct {
 type CreateAccountRequest struct {
 	Balance float64 `json:"balance"`
 }
+
+type FundTransactionRequest struct {
+	Amount          float64 `json:"amount"`
+	TransactionType string  `json:"transactionType"`
+}
+
+// type FundTransactionResponse struct {
+// }
