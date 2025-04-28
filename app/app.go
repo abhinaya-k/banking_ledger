@@ -28,11 +28,16 @@ func StartApp() {
 
 	defer func() {
 		database.CloseDatabasePool()
+		database.DisconnectMongoDB()
 	}()
 
 	SetupHealthRoute()
 
 	if err := database.InitializeDatabasePool(); err != nil {
+		panic(err)
+	}
+
+	if err := database.InitMongoDB(); err != nil {
 		panic(err)
 	}
 

@@ -20,6 +20,9 @@ type Config struct {
 	KafkaTopic    string
 	KafkaUserName string
 	KafkaPassword string
+	MongoHost     string
+	MongoPort     int
+	MongoDbName   string
 }
 
 var AppConfig Config
@@ -54,6 +57,9 @@ func LoadEnv() {
 		KafkaTopic:    getEnv("KAFKA_TOPIC", "transaction_events"),
 		KafkaUserName: getEnv("KAFKA_USERNAME", "admin"),
 		KafkaPassword: getEnv("KAFKA_PASSWORD", "admin"),
+		MongoHost:     getEnv("MONGO_HOST", "localhost"),
+		MongoPort:     getEnvAsInt("MONGO_PORT", 27017),
+		MongoDbName:   getEnv("MONGO_DB_NAME", "bankingLedger"),
 	}
 
 	SERVICE_BASE_PATH = getEnv("SERVICE_BASE_PATH", "/bankingLedger")
