@@ -114,6 +114,15 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		return appError
 	}
 
+	txCollection := database.GetCollection("transactions")
+
+	_, err = txCollection.InsertOne(ctx, transaction)
+	if err != nil {
+		errMsg := fmt.Sprintf("ProcessTransaction: Failed to insert transaction into MongoDB! Error: %s", err.Error())
+		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		return appError
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		errMsg := "ProcessTransaction: Failed to commit transaction!"
 		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
