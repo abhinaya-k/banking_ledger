@@ -15,6 +15,7 @@ type userDb struct{}
 type userDbInterface interface {
 	GetUserByEmail(ctx context.Context, email string) (exists bool, user models.User, appError *models.ApplicationError)
 	CreateUser(ctx context.Context, userDetails models.User) *models.ApplicationError
+	GetUserByUserId(ctx context.Context, userId int) (exists bool, user models.User, appError *models.ApplicationError)
 }
 
 var UserDb userDbInterface
@@ -60,4 +61,25 @@ func (u *userDb) CreateUser(ctx context.Context, userDetails models.User) *model
 	}
 
 	return nil
+}
+
+func (u *userDb) GetUserByUserId(ctx context.Context, userId int) (exists bool, user models.User, appError *models.ApplicationError) {
+
+	sqlStatement := `select u."user_id", u."email", u."password_hash", u."first_name", u."last_name" from users u where  u."user_id" = $1`
+
+	err := dbPool.QueryRow(ctx, sqlStatement, userId).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName)
+	if err != nil {
+
+		if err == pgx.ErrNoRows {
+			return false, user, nil
+		}
+
+		errMsg := fmt.Sprintf("GetUserByEmail: Could not get user details from Database. Error:%s!", err.Error())
+		displayMsg := fmt.Sprintf("Could not get user details for userId: %s!", userId)
+		logger.Log.Error(errMsg)
+		appError = utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		return false, user, appError
+	}
+
+	return true, user, nil
 }

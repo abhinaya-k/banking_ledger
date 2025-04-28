@@ -65,7 +65,7 @@ func FundTransaction(c *gin.Context) {
 
 	err := c.BindJSON(&input)
 	if err != nil {
-		errMsg := fmt.Sprintf("CreateAccount: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
+		errMsg := fmt.Sprintf("FundTransaction: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
 		logger.Log.Error(errMsg)
 		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
@@ -75,7 +75,7 @@ func FundTransaction(c *gin.Context) {
 
 	user_id, exists := c.Get("user_id")
 	if !exists {
-		errMsg := "CreateAccount: UserId not found in context claims"
+		errMsg := "FundTransaction: UserId not found in context claims"
 		logger.Log.Error(errMsg)
 		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
@@ -85,7 +85,7 @@ func FundTransaction(c *gin.Context) {
 
 	userId, ok := user_id.(int)
 	if !ok {
-		errMsg := "CreateAccount: UserId found in context claims is not of correct type"
+		errMsg := "FundTransaction: UserId found in context claims is not of correct type"
 		logger.Log.Error(errMsg)
 		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
@@ -100,4 +100,49 @@ func FundTransaction(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse{Type: "success", Message: "Transaction process queued"})
+}
+
+func GetTransactionHistory(c *gin.Context) {
+
+	var input models.GetTransactionHistoryRequest
+
+	ctx := utils.GetContextFromGinContext(c)
+
+	err := c.BindJSON(&input)
+	if err != nil {
+		errMsg := fmt.Sprintf("GetTransactionHistory: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
+		logger.Log.Error(errMsg)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
+		c.JSON(apiError.StatusCode, apiError.ApplicationError)
+		return
+	}
+
+	user_id, exists := c.Get("user_id")
+	if !exists {
+		errMsg := "GetTransactionHistory: UserId not found in context claims"
+		logger.Log.Error(errMsg)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
+		c.JSON(apiError.StatusCode, apiError.ApplicationError)
+		return
+	}
+
+	userId, ok := user_id.(int)
+	if !ok {
+		errMsg := "GetTransactionHistory: UserId found in context claims is not of correct type"
+		logger.Log.Error(errMsg)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
+		c.JSON(apiError.StatusCode, apiError.ApplicationError)
+		return
+	}
+
+	apiResponse, apiError := services.GetTransactionHistory(ctx, userId, input)
+	if apiError != nil {
+		c.JSON(apiError.StatusCode, apiError.ApplicationError)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.SuccessResponse{Type: "success", Message: apiResponse})
 }

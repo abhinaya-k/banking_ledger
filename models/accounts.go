@@ -27,3 +27,31 @@ type TransactionRequestKafka struct {
 	RequestId       uuid.UUID `json:"requestId"`
 	TransactionTime int64     `json:"transactionTime"`
 }
+
+type GetTransactionHistoryRequest struct {
+	Filters struct {
+		TransactionType *string `json:"transactionType,omitempty" binding:"oneof=deposit withdraw"`
+		StartTime       *int64  `json:"startTime,omitempty"`
+		EndTime         *int64  `json:"endTime,omitempty"`
+	} `json:"filters"`
+	Pagination *Pagination `json:"pagination,omitempty"`
+}
+
+type TransactionHistory struct {
+	UserId          int     `json:"userId"`
+	FirstName       string  `json:"fistName"`
+	LastName        string  `json:"lastName"`
+	Amount          float64 `json:"amount"`
+	TransactionType string  `json:"transactionType"`
+	TransactionTime int64   `json:"transactionTime"`
+}
+
+type GetTransactionHistoryResponse struct {
+	TransactionHistory []TransactionHistory `json:"transactionHistory"`
+	Pagination         Pagination           `json:"pagination"`
+}
+
+type Pagination struct {
+	Page  int64 `json:"page"`
+	Limit int64 `json:"limit"`
+}

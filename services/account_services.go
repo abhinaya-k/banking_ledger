@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAccountRequest) *models.ApiError {
@@ -130,5 +132,109 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 	}
 
 	return nil
+
+}
+
+func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransactionHistoryRequest) (*models.GetTransactionHistoryResponse, *models.ApiError) {
+
+	exists, _, appError := database.AccDb.GetAccountByUserId(ctx, userId)
+	if appError != nil {
+		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
+	}
+
+	if !exists {
+		errMsg := "Account does not exists for this user!"
+		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+	}
+
+	userExists, user, appError := database.UserDb.GetUserByUserId(ctx, userId)
+	if appError != nil {
+		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
+	}
+
+	if !userExists {
+		errMsg := fmt.Sprintf("User does not exists UserId: %d!", userId)
+		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+	}
+
+	txCollection := database.GetCollection("transactions")
+
+	filter := bson.M{
+		"userId": userId,
+	}
+
+	var deposit string = "deposit"
+	var withdraw string = "withdraw"
+
+	if req.Filters.TransactionType != nil && *&req.Filters.TransactionType != &deposit && *&req.Filters.TransactionType != &withdraw {
+		filter["transactionType"] = *req.Filters.TransactionType
+	}
+
+	timeConditions := bson.M{}
+	if req.Filters.StartTime != nil {
+		timeConditions["$gte"] = *req.Filters.StartTime
+	}
+	if req.Filters.EndTime != nil {
+		timeConditions["$lte"] = *req.Filters.EndTime
+	}
+	if len(timeConditions) > 0 {
+		filter["transactionTime"] = timeConditions
+	}
+
+	if req.Pagination == nil {
+		req.Pagination = &models.Pagination{
+			Page:  1,
+			Limit: 10,
+		}
+	}
+
+	skip := (req.Pagination.Page - 1) * req.Pagination.Limit
+	findOptions := options.Find().
+		SetSkip(skip).
+		SetLimit(req.Pagination.Limit).
+		SetSort(bson.D{{Key: "transactionTime", Value: -1}})
+
+	cursor, err := txCollection.Find(ctx, filter, findOptions)
+	if err != nil {
+		errMsg := fmt.Sprintf("GetTransactionHistory: Failed to find transactions in MongoDB! Error: %s", err.Error())
+		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, errMsg, nil)
+		return nil, apiError
+	}
+	defer cursor.Close(ctx)
+
+	// var transactions []models.TransactionRequestKafka
+	var transactions []models.TransactionHistory
+	for cursor.Next(ctx) {
+		var transaction models.TransactionRequestKafka
+		if err := cursor.Decode(&transaction); err != nil {
+			errMsg := fmt.Sprintf("GetTransactionHistory: Failed to decode transaction! Error: %s", err.Error())
+			apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, errMsg, nil)
+			return nil, apiError
+		}
+
+		transactionHistory := models.TransactionHistory{
+			UserId:          transaction.UserId,
+			FirstName:       user.FirstName,
+			LastName:        user.LastName,
+			Amount:          transaction.Amount,
+			TransactionType: transaction.TransactionType,
+			TransactionTime: transaction.TransactionTime,
+		}
+
+		transactions = append(transactions, transactionHistory)
+	}
+
+	if err := cursor.Err(); err != nil {
+		errMsg := fmt.Sprintf("GetTransactionHistory: Cursor error! Error: %s", err.Error())
+		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, errMsg, nil)
+		return nil, apiError
+	}
+
+	var apiResponse models.GetTransactionHistoryResponse
+
+	apiResponse.TransactionHistory = transactions
+	apiResponse.Pagination = *req.Pagination
+
+	return &apiResponse, nil
 
 }
