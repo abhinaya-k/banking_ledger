@@ -17,3 +17,9 @@ type FundTransactionRequest struct {
 
 // type FundTransactionResponse struct {
 // }
+
+type TransactionRequestKafka struct {
+	UserId          int     `json:"user_id"`
+	Amount          float64 `json:"amount"`
+	TransactionType string  `json:"transactionType"`
+}

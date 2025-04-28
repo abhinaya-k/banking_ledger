@@ -1,4 +1,4 @@
-package handlers
+package misc
 
 import (
 	"banking_ledger/database"

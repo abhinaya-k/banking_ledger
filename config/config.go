@@ -25,8 +25,9 @@ type Config struct {
 var AppConfig Config
 
 var (
-	SERVICE_BASE_PATH string
-	JWT_SECRET        string
+	SERVICE_BASE_PATH                  string
+	JWT_SECRET                         string
+	TRANSACTION_PROCESSING_KAFKA_TOPIC string
 )
 
 func init() {
@@ -57,6 +58,7 @@ func LoadEnv() {
 
 	SERVICE_BASE_PATH = getEnv("SERVICE_BASE_PATH", "/bankingLedger")
 	JWT_SECRET = os.Getenv("JWT_SECRET")
+	TRANSACTION_PROCESSING_KAFKA_TOPIC = os.Getenv("TRANSACTION_PROCESSING_KAFKA_TOPIC")
 }
 
 // Helper function to read environment variable or fallback default

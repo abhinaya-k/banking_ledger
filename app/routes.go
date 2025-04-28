@@ -39,5 +39,6 @@ func SetupUserRoute() {
 func SetupCognitoProtectedRoutes() {
 
 	cognitoProtectedRoutes.POST("/v1/account", handlers.CreateAccount)
+	cognitoProtectedRoutes.PATCH("/account/v1/transaction", handlers.FundTransaction)
 
 }

@@ -2,10 +2,12 @@ package clients
 
 import (
 	"banking_ledger/config"
-	"banking_ledger/handlers"
 	"banking_ledger/logger"
+	"banking_ledger/misc"
 	"banking_ledger/models"
+	"banking_ledger/utils"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -43,7 +45,7 @@ func KafkaConsumer(kafkaConsumerGroup string, kafkaTopicName string, callbackFun
 	if err != nil {
 		errorMsg := fmt.Sprintf("Kafka consumer connection error.Topic:%s,Error:%s!\n", kafkaTopicName, err.Error())
 		logger.Log.Error(errorMsg)
-		handlers.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, nil)
+		misc.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, nil)
 		panic(err)
 	}
 
@@ -52,7 +54,7 @@ func KafkaConsumer(kafkaConsumerGroup string, kafkaTopicName string, callbackFun
 	if err != nil {
 		errorMsg := fmt.Sprintf("Kafka consumer subscribe error.Topic:%s,Error:%s!\n", kafkaTopicName, err.Error())
 		logger.Log.Error(errorMsg)
-		handlers.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, nil)
+		misc.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, nil)
 		panic(err)
 	}
 
@@ -65,7 +67,7 @@ func KafkaConsumer(kafkaConsumerGroup string, kafkaTopicName string, callbackFun
 			} else {
 				errorMsg := fmt.Sprintf("Kafka consumer commit error.Error:%s,Message:%s!\n", err.Error(), string(msg.Value))
 				logger.Log.Error(errorMsg)
-				handlers.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, msg.Value)
+				misc.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, msg.Value)
 				c.Close()
 				return
 			}
@@ -73,7 +75,7 @@ func KafkaConsumer(kafkaConsumerGroup string, kafkaTopicName string, callbackFun
 			//Here I am making the service panic and restart whenever consumer read error occurs
 			errorMsg := fmt.Sprintf("Kafka consumer read error.Error:%s!\n", err.Error())
 			logger.Log.Error(errorMsg)
-			handlers.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, nil)
+			misc.ProcessError(ctx, models.KAFKA_CONSUMER_ERROR, errorMsg, nil)
 			panic(err)
 		}
 	}
@@ -96,7 +98,7 @@ func KafkaProducer(producerChannel <-chan ToKafkaMessage) {
 	if err != nil {
 		errorMsg := fmt.Sprintf("Kafka producer connection error.Error:%s!\n", err.Error())
 		logger.Log.Error(errorMsg)
-		handlers.ProcessError(ctx, models.KAFKA_PRODUCER_ERROR, errorMsg, nil)
+		misc.ProcessError(ctx, models.KAFKA_PRODUCER_ERROR, errorMsg, nil)
 		panic(err)
 	}
 
@@ -118,15 +120,39 @@ func KafkaProducer(producerChannel <-chan ToKafkaMessage) {
 		if kafkaMessage.TopicPartition.Partition == -1 {
 			errorMsg := fmt.Sprintf("Kafka producer or topic partition error.Topic:%s,Message:%s!\n", *kafkaMessage.TopicPartition.Topic, string(kafkaMessage.Value))
 			logger.Log.Error(errorMsg)
-			handlers.ProcessError(ctx, models.KAFKA_PRODUCER_ERROR, errorMsg, kafkaMessage.Value)
+			misc.ProcessError(ctx, models.KAFKA_PRODUCER_ERROR, errorMsg, kafkaMessage.Value)
 		}
 
 		if err != nil {
 			errorMsg := fmt.Sprintf("Kafka producer produce error.Error:%s!\n", err.Error())
 			logger.Log.Error(errorMsg)
-			handlers.ProcessError(ctx, models.KAFKA_PRODUCER_ERROR, errorMsg, nil)
+			misc.ProcessError(ctx, models.KAFKA_PRODUCER_ERROR, errorMsg, nil)
 		}
 
 	}
 
+}
+
+func SendMessageToKafkaTopic(ctx context.Context, topic string, kafkaMessage interface{}, kafkaMessageKey string) *models.ApplicationError {
+
+	txByteArray, err := json.Marshal(kafkaMessage)
+	if err != nil {
+
+		errMsg := fmt.Sprintf("SendMessageToKafkaTopic: Kafka topic:%s,Cannot convert struct to byte array,Error:%s", topic, err.Error())
+		logger.Log.Error(errMsg)
+		appError := utils.RenderAppError(ctx, 1001, errMsg, "", kafkaMessage)
+		return appError
+
+	} else {
+
+		kafkaMsg := ToKafkaMessage{
+			Topic: topic,
+			Key:   kafkaMessageKey,
+			Value: txByteArray,
+		}
+
+		ToKafkaChToTransactionProcessor <- kafkaMsg
+	}
+
+	return nil
 }
