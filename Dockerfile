@@ -1,5 +1,5 @@
 # Use the official Golang image as a build stage
-FROM golang:1.21 as builder
+FROM golang:1.24.2 as builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -11,17 +11,19 @@ RUN go mod download
 # Copy the rest of the application code
 COPY . .
 
-# Build the Go binary
-RUN go build -o main .
+# Build the Go binary statically
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
 
-# Use a smaller base image for the final container
-FROM gcr.io/distroless/base-debian11
+# Final minimal image
+FROM alpine:latest
 
-# Set working directory
-WORKDIR /
+WORKDIR /root/
 
-# Copy the compiled binary from the builder stage
+# Copy binary from builder
 COPY --from=builder /app/main .
 
-# Command to run the binary
-ENTRYPOINT ["/main"]
+# Expose your service port
+EXPOSE 8080
+
+# Run binary
+ENTRYPOINT ["./main"]
