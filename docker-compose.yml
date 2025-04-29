@@ -1,6 +1,23 @@
 version: '3.9'
 
 services:
+  ledger-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ledger-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - ENV=dev
+      - POSTGRES_HOST=ledger-postgres
+      - KAFKA_BROKERS=ledger-kafka:9092
+    networks:
+      - ledger-network
+
   postgres:
     image: postgres:14
     container_name: ledger-postgres
@@ -13,55 +30,69 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ledger-network
     
-  # migrate:
-  #   image: migrate/migrate
-  #   depends_on:
-  #     - postgres
-  #   command: [
-  #     "-path", "\\database\\migrations",
-  #     "-database", "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable",
-  #     "up"
-  #   ]
-  #   volumes:
-  #     - ./migrations:/migrations
+  migrate:
+    image: migrate/migrate
+    container_name: banking_ledger-migrate
+    depends_on:
+      - postgres
+    volumes:
+      - ./migrations:/migrations
+    entrypoint: [
+      "sh", "-c",
+      "migrate -path=/migrations -database postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable up"
+    ]
+    networks:
+      - ledger-network
 
 
-  # mongo:
-  #   image: mongo:6.0
-  #   container_name: ledger-mongo
-  #   restart: always
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - mongo_data:/data/db
+  mongo:
+    image: mongo:6.0
+    container_name: ledger-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ledger-network
 
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper:7.4.0
-  #   container_name: zookeeper
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_TICK_TIME: 2000
-  #   ports:
-  #     - "2181:2181"
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.1
+    container_name: ledger-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - ledger-network
 
-  # kafka:
-  #   image: confluentinc/cp-kafka:7.4.0
-  #   container_name: kafka
-  #   depends_on:
-  #     - zookeeper
-  #   ports:
-  #     - "9092:9092"
-  #   environment:
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  #   volumes:
-  #     - kafka_data:/var/lib/kafka/data
+  kafka:
+    image: confluentinc/cp-kafka:7.4.1
+    container_name: ledger-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"  # For internal docker communication
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: ledger-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://ledger-kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - ledger-network
 
 volumes:
   postgres_data:
   mongo_data:
-  kafka_data:
+
+networks:
+  ledger-network:

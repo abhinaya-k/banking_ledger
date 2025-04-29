@@ -32,6 +32,9 @@ func StartApp() {
 	}()
 
 	SetupHealthRoute()
+	SetupRoutesMiddleware()
+	SetupUserRoute()
+	SetupCognitoProtectedRoutes()
 
 	if err := database.InitializeDatabasePool(); err != nil {
 		panic(err)

@@ -1,7 +1,7 @@
 package services
 
 import (
-	clients "banking_ledger/client"
+	"banking_ledger/clients"
 	"banking_ledger/config"
 	"banking_ledger/database"
 	"banking_ledger/models"

@@ -17,7 +17,6 @@ type Config struct {
 	DBPassword    string
 	DBName        string
 	KafkaBrokers  []string
-	KafkaTopic    string
 	KafkaUserName string
 	KafkaPassword string
 	MongoHost     string
@@ -54,7 +53,6 @@ func LoadEnv() {
 		DBPassword:    getEnv("DB_PASSWORD", "password"),
 		DBName:        getEnv("DB_NAME", "ledgerdb"),
 		KafkaBrokers:  []string{getEnv("KAFKA_BROKER", "localhost:9092")},
-		KafkaTopic:    getEnv("KAFKA_TOPIC", "transaction_events"),
 		KafkaUserName: getEnv("KAFKA_USERNAME", "admin"),
 		KafkaPassword: getEnv("KAFKA_PASSWORD", "admin"),
 		MongoHost:     getEnv("MONGO_HOST", "localhost"),
