@@ -2,6 +2,8 @@ package services
 
 import (
 	"banking_ledger/database"
+	"banking_ledger/logger"
+	"banking_ledger/misc"
 	"banking_ledger/models"
 	"banking_ledger/utils"
 	"context"
@@ -17,17 +19,20 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 	req.Email = strings.TrimSpace(req.Email)
 	if req.Email == "" || req.Password == "" {
 		errMsg := "email and password are required"
+		logger.Log.Error(errMsg)
 		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
 	// Check if user already exists
 	exists, _, appError := database.UserDb.GetUserByEmail(ctx, req.Email)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to check if user exists", appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
 	if exists {
 		errMsg := "user already exists with this email"
+		logger.Log.Error(errMsg)
 		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
@@ -35,6 +40,8 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to generate password hash! Error: %s", err.Error())
+		logger.Log.Error(errMsg)
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, nil)
 		return utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, "", nil)
 	}
 
@@ -49,6 +56,7 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 	// Save user to the database
 	appError = database.UserDb.CreateUser(ctx, *user)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to create user", appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
@@ -59,12 +67,14 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 
 	exists, user, appError := database.UserDb.GetUserByEmail(ctx, req.Email)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to get user details", appError)
 		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
 	if !exists {
-		errMsg := "user not found"
+		errMsg := fmt.Sprintf("user not found for email: %s", req.Email)
 		displayMsg := "User not found! Please Register first"
+		logger.Log.Error(errMsg)
 		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, displayMsg, nil)
 	}
 
@@ -72,6 +82,8 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 	if err != nil {
 		errMsg := fmt.Sprintf("Error comparing password! Error: %s", err.Error())
 		displayMsg := "Could not verify password"
+		logger.Log.Error(errMsg)
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, nil)
 		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, displayMsg, nil)
 	}
 
@@ -79,6 +91,8 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 	if err != nil {
 		errMsg := fmt.Sprintf("Error generating token! Error: %s", err.Error())
 		displayMsg := "Could not generate token"
+		logger.Log.Error(errMsg)
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, nil)
 		return nil, utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, displayMsg, nil)
 	}
 

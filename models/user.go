@@ -9,7 +9,7 @@ type User struct {
 }
 
 type RegisterUserReqBody struct {
-	FirstName string `json:"fistName" binding:"required"`
+	FirstName string `json:"firstName" binding:"required"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email" binding:"required,email"`
 	Password  string `json:"password" binding:"required,min=7"`

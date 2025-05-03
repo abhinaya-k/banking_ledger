@@ -49,7 +49,7 @@ func (u *userDb) CreateUser(ctx context.Context, userDetails models.User) *model
 
 	var userId int
 
-	sqlStatement := `INSERT INTO users ( "email", "password_hash", "first_name","last_name") VALUES ($1, $2, $3, $4) RETURNING id`
+	sqlStatement := `INSERT INTO users ( "email", "password_hash", "first_name","last_name") VALUES ($1, $2, $3, $4) RETURNING user_id;`
 
 	err := dbPool.QueryRow(ctx, sqlStatement, userDetails.Email, userDetails.PasswordHash, userDetails.FirstName, userDetails.LastName).Scan(&userId)
 	if err != nil {
@@ -74,8 +74,8 @@ func (u *userDb) GetUserByUserId(ctx context.Context, userId int) (exists bool, 
 			return false, user, nil
 		}
 
-		errMsg := fmt.Sprintf("GetUserByEmail: Could not get user details from Database. Error:%s!", err.Error())
-		displayMsg := fmt.Sprintf("Could not get user details for userId: %s!", userId)
+		errMsg := fmt.Sprintf("GetUserByUserId: Could not get user details from Database. Error:%s!", err.Error())
+		displayMsg := fmt.Sprintf("Could not get user details for userId: %d!", userId)
 		logger.Log.Error(errMsg)
 		appError = utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
 		return false, user, appError
