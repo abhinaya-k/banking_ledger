@@ -17,6 +17,8 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAccountRequest) *models.ApiError {
@@ -137,9 +139,11 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		return appError
 	}
 
+	transactionToLog := models.TransactionCollection(transaction)
+
 	txCollection := database.GetCollection("transactions")
 
-	_, err = txCollection.InsertOne(ctx, transaction)
+	_, err = txCollection.InsertOne(ctx, transactionToLog)
 	if err != nil {
 		errMsg := fmt.Sprintf("ProcessTransaction: Failed to insert transaction into MongoDB! Error: %s", err.Error())
 		logger.Log.Error(errMsg)
@@ -221,6 +225,13 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 		SetLimit(req.Pagination.Limit).
 		SetSort(bson.D{{Key: "transactionTime", Value: -1}})
 
+	fields := []zapcore.Field{
+		zap.Any("filter", filter),
+		zap.Any("findOptions ", findOptions),
+	}
+
+	logger.Log.Info("GetTransactionHistory: MongoDB query", fields...)
+
 	cursor, err := txCollection.Find(ctx, filter, findOptions)
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory: Failed to find transactions in MongoDB! Error: %s", err.Error())
@@ -232,10 +243,11 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	}
 	defer cursor.Close(ctx)
 
-	// var transactions []models.TransactionRequestKafka
-	var transactions []models.TransactionHistory
+	logger.Log.Info("GetTransactionHistory: MongoDB query completed", zap.Any("cursor", cursor))
+
+	transactions := []models.TransactionHistory{}
 	for cursor.Next(ctx) {
-		var transaction models.TransactionRequestKafka
+		var transaction models.TransactionCollection
 		if err := cursor.Decode(&transaction); err != nil {
 			errMsg := fmt.Sprintf("GetTransactionHistory: Failed to decode transaction! Error: %s", err.Error())
 			logger.Log.Error(errMsg)

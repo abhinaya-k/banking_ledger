@@ -6,6 +6,7 @@ import (
 	"banking_ledger/logger"
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,7 +15,7 @@ import (
 
 var (
 	MongoClient  *mongo.Client
-	databaseName = config.AppConfig.MongoDbName
+	databaseName = os.Getenv("MONGO_DB_NAME")
 )
 
 func InitMongoDB() error {
