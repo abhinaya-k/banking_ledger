@@ -8,8 +8,9 @@ BEGIN;
 
   DROP TABLE IF EXISTS cisco_meraki_errors;
   DROP TABLE IF EXISTS kafka_topic_dropped_messages;
-  DROP TABLE IF EXISTS users;
   DROP TABLE IF EXISTS accounts;
+  DROP TABLE IF EXISTS users;
+ 
 
   DROP FUNCTION IF EXISTS TRIGGER_SET_TIMESTAMP;
   

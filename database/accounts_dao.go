@@ -15,9 +15,9 @@ type accountDb struct{}
 type accountDbInterface interface {
 	BeginTx(ctx context.Context) (pgx.Tx, error)
 	GetAccountByUserId(ctx context.Context, userId int) (exists bool, account models.Account, appError *models.ApplicationError)
-	CreateAccountForUser(ctx context.Context, userId int, balance int) *models.ApplicationError
-	GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, balance int, appError *models.ApplicationError)
-	UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int, balance int) *models.ApplicationError
+	CreateAccountForUser(ctx context.Context, userId int, balance int64) *models.ApplicationError
+	GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, balance int64, appError *models.ApplicationError)
+	UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int, balance int64) *models.ApplicationError
 }
 
 var AccDb accountDbInterface
@@ -47,7 +47,7 @@ func (a *accountDb) GetAccountByUserId(ctx context.Context, userId int) (exists 
 	return true, account, nil
 }
 
-func (a *accountDb) CreateAccountForUser(ctx context.Context, userId int, balance int) *models.ApplicationError {
+func (a *accountDb) CreateAccountForUser(ctx context.Context, userId int, balance int64) *models.ApplicationError {
 
 	var accountId int
 
@@ -69,9 +69,9 @@ func (a *accountDb) BeginTx(ctx context.Context) (pgx.Tx, error) {
 	return dbPool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable}) // best safety!
 }
 
-func (a *accountDb) GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, balance int, appError *models.ApplicationError) {
+func (a *accountDb) GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, balance int64, appError *models.ApplicationError) {
 
-	var accountBalance int
+	var accountBalance int64
 
 	sqlStatement := `select ac."balance" from accounts ac where ac."user_id" = $1 FOR UPDATE`
 
@@ -92,7 +92,7 @@ func (a *accountDb) GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId i
 	return true, accountBalance, nil
 }
 
-func (a *accountDb) UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int, balance int) *models.ApplicationError {
+func (a *accountDb) UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int, balance int64) *models.ApplicationError {
 
 	sqlStatement := `UPDATE accounts SET "balance" = $1	WHERE "user_id" = $2`
 

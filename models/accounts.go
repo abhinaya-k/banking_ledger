@@ -3,9 +3,9 @@ package models
 import "github.com/google/uuid"
 
 type Account struct {
-	AccountID int `json:"account_id"`
-	UserID    int `json:"user_id"`
-	Balance   int `json:"balance"` // stored in rupees
+	AccountID int   `json:"account_id"`
+	UserID    int   `json:"user_id"`
+	Balance   int64 `json:"balance"` // stored in rupees
 }
 
 type CreateAccountRequest struct {

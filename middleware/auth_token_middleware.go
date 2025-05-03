@@ -3,6 +3,7 @@ package middleware
 import (
 	"banking_ledger/config"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -48,14 +49,18 @@ func AuthTokenMiddleware() gin.HandlerFunc {
 
 		// Extract user ID from the token
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			sub, ok := claims["sub"].(float64) // jwt parses numbers as float64
+			sub, ok := claims["sub"].(string) // jwt parses numbers as float64
 			if !ok {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
 				c.Abort()
 				return
 			}
-			userID := int(sub)
-
+			userID, err := strconv.Atoi(sub)
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid sub typ"})
+				c.Abort()
+				return
+			}
 			// Set userID in the context
 			c.Set("user_id", userID)
 

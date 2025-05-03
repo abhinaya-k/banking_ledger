@@ -33,7 +33,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
-	balanceInPaise := int(req.Balance * 100)
+	balanceInPaise := int64(req.Balance * 100)
 
 	appError = database.AccDb.CreateAccountForUser(ctx, userId, balanceInPaise)
 	if appError != nil {
@@ -110,20 +110,20 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		return appError
 	}
 
-	if transaction.TransactionType == "withdraw" && balance < int(transaction.Amount*100) {
+	if transaction.TransactionType == "withdraw" && balance < int64(transaction.Amount*100) {
 		errMsg := fmt.Sprintf("ProcessTransaction: Insufficient balance for user! UserId: %d", transaction.UserId)
 		logger.Log.Error(errMsg)
 		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
 		return appError
 	}
 
-	var newBalance int
+	var newBalance int64
 	switch transaction.TransactionType {
 
 	case "deposit":
-		newBalance = balance + int(transaction.Amount*100)
+		newBalance = balance + int64(transaction.Amount*100)
 	case "withdraw":
-		newBalance = balance - int(transaction.Amount*100)
+		newBalance = balance - int64(transaction.Amount*100)
 	default:
 		errMsg := fmt.Sprintf("ProcessTransaction: Invalid Transaction Type! TransactionType: %s", transaction.TransactionType)
 		logger.Log.Error(errMsg)

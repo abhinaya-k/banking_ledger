@@ -39,8 +39,8 @@ UPDATE ON users FOR EACH ROW EXECUTE FUNCTION trigger_set_timestamp();
 
 CREATE TABLE IF NOT EXISTS accounts (
     "account_id" SERIAL PRIMARY KEY,                        
-    "user_id" INT NOT NULL,                          -- Foreign key to users table (this links to a user)
-    "balance" INT NOT NULL DEFAULT 0,                 -- The account balance in rupees (using INT to avoid float issues)
+    "user_id" INT NOT NULL UNIQUE,                          -- Foreign key to users table (this links to a user)
+    "balance" INT8 NOT NULL DEFAULT 0,                 -- The account balance in rupees (using INT to avoid float issues)
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     CONSTRAINT "fk_user" FOREIGN KEY("user_id") REFERENCES users(user_id) ON DELETE CASCADE, -- Foreign key constraint
