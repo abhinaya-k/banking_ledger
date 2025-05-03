@@ -1,9 +1,11 @@
 package app
 
 import (
+	"banking_ledger/clients"
 	"banking_ledger/config"
 	"banking_ledger/database"
 	"banking_ledger/middleware"
+	"banking_ledger/services"
 	"fmt"
 	"os"
 	"os/signal"
@@ -52,6 +54,10 @@ func StartApp() {
 			panic(err)
 		}
 	}()
+
+	go clients.KafkaProducer(clients.ToKafkaChToTransactionProcessor)
+
+	go clients.KafkaConsumer(config.TRANSACTION_PROCESSING_KAFKA_CG, config.TRANSACTION_PROCESSING_KAFKA_TOPIC, services.KafkaConsumerProcessTransactions)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)

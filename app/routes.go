@@ -1,9 +1,9 @@
 package app
 
 import (
-	"banking_ledger/config"
 	"banking_ledger/handlers"
 	"banking_ledger/middleware"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +15,7 @@ var (
 )
 
 func init() {
-	SERVICE_BASE_PATH = config.SERVICE_BASE_PATH
+	SERVICE_BASE_PATH = os.Getenv("SERVICE_BASE_PATH")
 	cognitoProtectedRoutes = Router.Group(SERVICE_BASE_PATH)
 	userRoutes = Router.Group(SERVICE_BASE_PATH)
 }
