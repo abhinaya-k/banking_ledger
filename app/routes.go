@@ -22,7 +22,13 @@ func init() {
 
 func SetupRoutesMiddleware() {
 
+	Router.Use(middleware.LogRequest())
+	Router.Use(middleware.CorsMiddleware())
+
 	cognitoProtectedRoutes.Use(middleware.AuthTokenMiddleware())
+	cognitoProtectedRoutes.Use(middleware.LogRequest())
+
+	userRoutes.Use(middleware.LogRequest())
 }
 
 func SetupHealthRoute() {
