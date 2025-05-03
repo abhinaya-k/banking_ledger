@@ -4,11 +4,14 @@ import (
 	"banking_ledger/clients"
 	"banking_ledger/config"
 	"banking_ledger/database"
+	"banking_ledger/logger"
+	"banking_ledger/misc"
 	"banking_ledger/models"
 	"banking_ledger/utils"
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,11 +23,13 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 
 	exists, _, appError := database.AccDb.GetAccountByUserId(ctx, userId)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to check if account exists", appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
 	if exists {
 		errMsg := "Account already exists for this user"
+		logger.Log.Error(errMsg)
 		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
@@ -32,6 +37,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 
 	appError = database.AccDb.CreateAccountForUser(ctx, userId, balanceInPaise)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to create account for user", appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
@@ -41,18 +47,20 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 
 func FundTransaction(ctx context.Context, userId int, req models.FundTransactionRequest) *models.ApiError {
 
-	if req.TransactionType != "deposit" || req.TransactionType != "withdraw" {
-		errMsg := "Incorrect RequestBody! TransactionType should be either deposit or withdraw"
-		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
-	}
+	// if req.TransactionType != "deposit" || req.TransactionType != "withdraw" {
+	// 	errMsg := "Incorrect RequestBody! TransactionType should be either deposit or withdraw"
+	// 	return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+	// }
 
 	exists, _, appError := database.AccDb.GetAccountByUserId(ctx, userId)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to check if account exists", appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
 	if !exists {
 		errMsg := "Account does not exists for this user!"
+		logger.Log.Error(errMsg)
 		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
@@ -64,7 +72,12 @@ func FundTransaction(ctx context.Context, userId int, req models.FundTransaction
 		TransactionTime: time.Now().Unix(),
 	}
 
-	appError = clients.SendMessageToKafkaTopic(ctx, config.TRANSACTION_PROCESSING_KAFKA_TOPIC, kafkaMsg, string(userId))
+	appError = clients.SendMessageToKafkaTopic(ctx, config.TRANSACTION_PROCESSING_KAFKA_TOPIC, kafkaMsg, strconv.Itoa(userId))
+	if appError != nil {
+		errMsg := fmt.Sprintf("FundTransaction: Failed to send message to Kafka topic! Error: %s", appError.Message.ErrorMessage)
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
+		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
+	}
 
 	return nil
 
@@ -75,7 +88,9 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 	tx, err := database.AccDb.BeginTx(ctx)
 	if err != nil {
 		errMsg := "ProcessTransaction: Could not begin transaction!"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		logger.Log.Error(errMsg)
+		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
+		misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return appError
 	}
 
@@ -83,17 +98,21 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 
 	exists, balance, appError := database.AccDb.GetBalanceForUserId(ctx, tx, transaction.UserId)
 	if appError != nil {
+		errMsg := "Failed to get balance for user"
+		misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return appError
 	}
 
 	if !exists {
 		errMsg := fmt.Sprintf("ProcessTransaction: Balance not for user! UserId: %d", transaction.UserId)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		logger.Log.Error(errMsg)
+		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
 		return appError
 	}
 
 	if transaction.TransactionType == "withdraw" && balance < int(transaction.Amount*100) {
 		errMsg := fmt.Sprintf("ProcessTransaction: Insufficient balance for user! UserId: %d", transaction.UserId)
+		logger.Log.Error(errMsg)
 		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
 		return appError
 	}
@@ -107,12 +126,14 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		newBalance = balance - int(transaction.Amount*100)
 	default:
 		errMsg := fmt.Sprintf("ProcessTransaction: Invalid Transaction Type! TransactionType: %s", transaction.TransactionType)
+		logger.Log.Error(errMsg)
 		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
 		return appError
 	}
 
 	appError = database.AccDb.UpdateBalanceForUserId(ctx, tx, transaction.UserId, newBalance)
 	if appError != nil {
+		misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, "Failed to update balance for user", appError)
 		return appError
 	}
 
@@ -121,12 +142,14 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 	_, err = txCollection.InsertOne(ctx, transaction)
 	if err != nil {
 		errMsg := fmt.Sprintf("ProcessTransaction: Failed to insert transaction into MongoDB! Error: %s", err.Error())
+		logger.Log.Error(errMsg)
 		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
 		return appError
 	}
 
 	if err := tx.Commit(ctx); err != nil {
 		errMsg := "ProcessTransaction: Failed to commit transaction!"
+		logger.Log.Error(errMsg)
 		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
 		return appError
 	}
@@ -139,21 +162,25 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 
 	exists, _, appError := database.AccDb.GetAccountByUserId(ctx, userId)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to check if account exists", appError)
 		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
 	if !exists {
 		errMsg := "Account does not exists for this user!"
+		logger.Log.Error(errMsg)
 		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
 	userExists, user, appError := database.UserDb.GetUserByUserId(ctx, userId)
 	if appError != nil {
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, "Failed to check if user exists", appError)
 		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 
 	if !userExists {
 		errMsg := fmt.Sprintf("User does not exists UserId: %d!", userId)
+		logger.Log.Error(errMsg)
 		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
 	}
 
@@ -166,7 +193,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	var deposit string = "deposit"
 	var withdraw string = "withdraw"
 
-	if req.Filters.TransactionType != nil && *&req.Filters.TransactionType != &deposit && *&req.Filters.TransactionType != &withdraw {
+	if req.Filters.TransactionType != nil && req.Filters.TransactionType != &deposit && req.Filters.TransactionType != &withdraw {
 		filter["transactionType"] = *req.Filters.TransactionType
 	}
 
@@ -197,7 +224,10 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	cursor, err := txCollection.Find(ctx, filter, findOptions)
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory: Failed to find transactions in MongoDB! Error: %s", err.Error())
-		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, errMsg, nil)
+		logger.Log.Error(errMsg)
+		appError := utils.RenderAppError(ctx, 1111, errMsg, "", nil)
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
+		apiError := utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 		return nil, apiError
 	}
 	defer cursor.Close(ctx)
@@ -208,7 +238,10 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 		var transaction models.TransactionRequestKafka
 		if err := cursor.Decode(&transaction); err != nil {
 			errMsg := fmt.Sprintf("GetTransactionHistory: Failed to decode transaction! Error: %s", err.Error())
-			apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, errMsg, nil)
+			logger.Log.Error(errMsg)
+			appError := utils.RenderAppError(ctx, 1111, errMsg, "", nil)
+			misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
+			apiError := utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 			return nil, apiError
 		}
 
@@ -226,7 +259,10 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 
 	if err := cursor.Err(); err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory: Cursor error! Error: %s", err.Error())
-		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, errMsg, nil)
+		logger.Log.Error(errMsg)
+		appError := utils.RenderAppError(ctx, 1111, errMsg, "", nil)
+		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
+		apiError := utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 		return nil, apiError
 	}
 

@@ -89,7 +89,6 @@ func KafkaConsumerProcessTransactions(msg *kafka.Message) (err error) {
 		errMsg := fmt.Sprintf("KafkaConsumerProcessTransactions:Could not process transaction,Transaction request:%v,Error message:%s", transactionRequest, appError.Message.ErrorMessage)
 		logger.Log.Error(errMsg)
 		misc.SaveDroppedMessage(ctx, config.TRANSACTION_PROCESSING_KAFKA_TOPIC, "TRANSACTION_PROCESSING_FAIL", msg.Value)
-		misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, transactionRequest)
 		return nil
 	}
 
