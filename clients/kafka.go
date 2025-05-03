@@ -36,10 +36,10 @@ func KafkaConsumer(kafkaConsumerGroup string, kafkaTopicName string, callbackFun
 		"group.id":           kafkaConsumerGroup,
 		"auto.offset.reset":  "earliest",
 		"enable.auto.commit": false,
-		"sasl.mechanisms":    "SCRAM-SHA-512",
-		"security.protocol":  "sasl_ssl",
-		"sasl.username":      config.AppConfig.KafkaUserName,
-		"sasl.password":      config.AppConfig.KafkaPassword,
+		// "sasl.mechanisms":    "SCRAM-SHA-512",
+		"security.protocol": "PLAINTEXT",
+		// "sasl.username":      config.AppConfig.KafkaUserName,
+		// "sasl.password":      config.AppConfig.KafkaPassword,
 	})
 
 	if err != nil {
@@ -89,10 +89,10 @@ func KafkaProducer(producerChannel <-chan ToKafkaMessage) {
 
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": config.AppConfig.KafkaBrokers,
-		"sasl.mechanisms":   "SCRAM-SHA-512",
-		"security.protocol": "sasl_ssl",
-		"sasl.username":     config.AppConfig.KafkaUserName,
-		"sasl.password":     config.AppConfig.KafkaPassword,
+		// "sasl.mechanisms":   "SCRAM-SHA-512",
+		"security.protocol": "PLAINTEXT",
+		// "sasl.username":     config.AppConfig.KafkaUserName,
+		// "sasl.password":     config.AppConfig.KafkaPassword,
 	})
 
 	if err != nil {

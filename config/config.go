@@ -16,7 +16,7 @@ type Config struct {
 	DBUser        string
 	DBPassword    string
 	DBName        string
-	KafkaBrokers  []string
+	KafkaBrokers  string
 	KafkaUserName string
 	KafkaPassword string
 	MongoHost     string
@@ -30,6 +30,7 @@ var (
 	SERVICE_BASE_PATH                  string
 	JWT_SECRET                         string
 	TRANSACTION_PROCESSING_KAFKA_TOPIC string
+	TRANSACTION_PROCESSING_KAFKA_CG    string
 )
 
 func init() {
@@ -44,25 +45,25 @@ func init() {
 }
 
 func LoadEnv() {
-
 	AppConfig = Config{
-		ServerPort:    getEnv("SERVER_PORT", "8080"),
-		DBHost:        getEnv("DB_HOST", "localhost"),
-		DBPort:        getEnv("DB_PORT", "5432"),
-		DBUser:        getEnv("DB_USER", "postgres"),
-		DBPassword:    getEnv("DB_PASSWORD", "password"),
-		DBName:        getEnv("DB_NAME", "ledgerdb"),
-		KafkaBrokers:  []string{getEnv("KAFKA_BROKER", "localhost:9092")},
-		KafkaUserName: getEnv("KAFKA_USERNAME", "admin"),
-		KafkaPassword: getEnv("KAFKA_PASSWORD", "admin"),
-		MongoHost:     getEnv("MONGO_HOST", "localhost"),
+		ServerPort:    os.Getenv("SERVER_PORT"),
+		DBHost:        os.Getenv("DB_HOST"),
+		DBPort:        os.Getenv("DB_PORT"),
+		DBUser:        os.Getenv("DB_USER"),
+		DBPassword:    os.Getenv("DB_PASSWORD"),
+		DBName:        os.Getenv("DB_NAME"),
+		KafkaBrokers:  os.Getenv("KAFKA_BROKER"),
+		KafkaUserName: os.Getenv("KAFKA_USERNAME"),
+		KafkaPassword: os.Getenv("KAFKA_PASSWORD"),
+		MongoHost:     os.Getenv("MONGO_HOST"),
 		MongoPort:     getEnvAsInt("MONGO_PORT", 27017),
-		MongoDbName:   getEnv("MONGO_DB_NAME", "bankingLedger"),
+		MongoDbName:   os.Getenv("MONGO_DB_NAME"),
 	}
 
-	SERVICE_BASE_PATH = getEnv("SERVICE_BASE_PATH", "/bankingLedger")
+	SERVICE_BASE_PATH = os.Getenv("SERVICE_BASE_PATH")
 	JWT_SECRET = os.Getenv("JWT_SECRET")
 	TRANSACTION_PROCESSING_KAFKA_TOPIC = os.Getenv("TRANSACTION_PROCESSING_KAFKA_TOPIC")
+	TRANSACTION_PROCESSING_KAFKA_CG = os.Getenv("TRANSACTION_PROCESSING_KAFKA_CG")
 }
 
 // Helper function to read environment variable or fallback default

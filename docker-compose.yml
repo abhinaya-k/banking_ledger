@@ -1,20 +1,38 @@
-version: '3.9'
-
 services:
   ledger-service:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: ledger-service
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
       - postgres
       - kafka
+      - kafka-init
+      - mongo
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "Waiting for Postgres…"
+        until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER; do sleep 2; done
+        echo "Waiting for Kafka..."
+        while ! nc -z ledger-kafka 29092; do sleep 2; done
+        echo "Running migrations",
+        migrate -path=database/migrations -database postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable up
+        echo "Starting service"
+        ./goserver
     environment:
-      - ENV=dev
-      - POSTGRES_HOST=ledger-postgres
-      - KAFKA_BROKERS=ledger-kafka:9092
+      ENV: dev
+      DB_HOST:     ledger-postgres     # ← must match your code’s config keys
+      DB_PORT:     5432
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME:     ${DB_NAME}
+      KAFKA_BROKERS: ${KAFKA_BROKER}
     networks:
       - ledger-network
 
@@ -27,26 +45,12 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - ledger-network
     
-  migrate:
-    image: migrate/migrate
-    container_name: banking_ledger-migrate
-    depends_on:
-      - postgres
-    volumes:
-      - ./migrations:/migrations
-    entrypoint: [
-      "sh", "-c",
-      "migrate -path=/migrations -database postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable up"
-    ]
-    networks:
-      - ledger-network
-
 
   mongo:
     image: mongo:6.0
@@ -83,12 +87,24 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: ledger-zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://ledger-kafka:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - ledger-network
+  
+  kafka-init:
+    image: confluentinc/cp-kafka:7.4.1
+    depends_on:
+      - kafka
+    entrypoint: [ "sh", "-c", "echo 'Waiting for Kafka...'; kafka-topics --bootstrap-server ledger-kafka:29092 --create --if-not-exists --topic ${TRANSACTION_PROCESSING_KAFKA_TOPIC} --replication-factor 1 --partitions 5; echo 'Kafka topic ready.'" ]
+    networks:
+      - ledger-network
+
+
 
 volumes:
   postgres_data:

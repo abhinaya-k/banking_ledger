@@ -1,29 +1,53 @@
-# Use the official Golang image as a build stage
-FROM golang:1.24.2 as builder
+# ---------- Build Stage ----------
+FROM golang:alpine as builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy go.mod and go.sum files and download dependencies
+# Install build tools and migration dependencies
+RUN apk update && apk add --no-cache \
+    gcc \
+    libc-dev \
+    librdkafka-dev \
+    pkgconf \
+    curl \
+    tar
+
+# Copy go mod files and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the rest of the application code
+# Copy the entire app source
 COPY . .
 
-# Build the Go binary statically
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
+COPY database /database
 
-# Final minimal image
+
+# Install migrate binary (for Alpine/Linux)
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz \
+    -o migrate.tar.gz && \
+    tar -xvf migrate.tar.gz && \
+    mv migrate /usr/local/bin/migrate && \
+    chmod +x /usr/local/bin/migrate && \
+    rm migrate.tar.gz
+
+# Build the Go binary
+RUN go build -tags musl -o goserver
+
+# ---------- Final Stage ----------
 FROM alpine:latest
 
-WORKDIR /root/
+WORKDIR /app
 
-# Copy binary from builder
-COPY --from=builder /app/main .
+# Install PostgreSQL client (for pg_isready)
+RUN apk add --no-cache postgresql-client
 
-# Expose your service port
+# Copy Go server binary and migration tool from builder
+COPY --from=builder /app/goserver /app
+COPY --from=builder /usr/local/bin/migrate /usr/local/bin/migrate
+COPY --from=builder /app/database /app/database
+
+# Expose service port
 EXPOSE 8080
 
-# Run binary
-ENTRYPOINT ["./main"]
+# Let docker-compose override this with its custom entrypoint (that waits, runs migration, and starts the service)
+ENTRYPOINT ["./goserver"]

@@ -19,6 +19,7 @@ var (
 
 func InitMongoDB() error {
 	uri := fmt.Sprintf("mongodb://%s:%d", config.AppConfig.MongoHost, config.AppConfig.MongoPort)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
