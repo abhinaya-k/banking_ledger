@@ -345,18 +345,18 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 		filter["userId"] = userId
 	}
 
-	var deposit string = "deposit"
-	var withdraw string = "withdraw"
-
-	if req.Filters.TransactionType != nil && req.Filters.TransactionType != &deposit && req.Filters.TransactionType != &withdraw {
-		filter["transactionType"] = *req.Filters.TransactionType
+	if req.Filters != nil && req.Filters.TransactionType != nil {
+		switch *req.Filters.TransactionType {
+		case "deposit", "withdraw":
+			filter["transactionType"] = *req.Filters.TransactionType
+		}
 	}
 
 	timeConditions := bson.M{}
-	if req.Filters.StartTime != nil {
+	if req.Filters != nil && req.Filters.StartTime != nil {
 		timeConditions["$gte"] = *req.Filters.StartTime
 	}
-	if req.Filters.EndTime != nil {
+	if req.Filters != nil && req.Filters.EndTime != nil {
 		timeConditions["$lte"] = *req.Filters.EndTime
 	}
 	if len(timeConditions) > 0 {

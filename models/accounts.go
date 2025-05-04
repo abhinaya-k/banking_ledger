@@ -40,7 +40,7 @@ type TransactionCollection struct {
 
 type GetTransactionHistoryRequest struct {
 	Filters *struct {
-		TransactionType *string `json:"transactionType,omitempty" binding:"oneof=deposit withdraw"`
+		TransactionType *string `json:"transactionType,omitempty" binding:"omitempty,oneof=deposit withdraw"`
 		StartTime       *int64  `json:"startTime,omitempty"`
 		EndTime         *int64  `json:"endTime,omitempty"`
 	} `json:"filters,omitempty"`
