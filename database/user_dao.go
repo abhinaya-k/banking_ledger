@@ -26,9 +26,9 @@ func init() {
 
 func (u *userDb) GetUserByEmail(ctx context.Context, email string) (exists bool, user models.User, appError *models.ApplicationError) {
 
-	sqlStatement := `select u."user_id", u."email", u."password_hash", u."first_name", u."last_name" from users u where  u."email" = $1`
+	sqlStatement := `select u."user_id", u."email", u."password_hash", u."first_name", u."last_name", u."role" from users u where  u."email" = $1`
 
-	err := dbPool.QueryRow(ctx, sqlStatement, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName)
+	err := dbPool.QueryRow(ctx, sqlStatement, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName, &user.Role)
 	if err != nil {
 
 		if err == pgx.ErrNoRows {
@@ -49,9 +49,9 @@ func (u *userDb) CreateUser(ctx context.Context, userDetails models.User) *model
 
 	var userId int
 
-	sqlStatement := `INSERT INTO users ( "email", "password_hash", "first_name","last_name") VALUES ($1, $2, $3, $4) RETURNING user_id;`
+	sqlStatement := `INSERT INTO users ( "email", "password_hash", "first_name","last_name", "role") VALUES ($1, $2, $3, $4, $5) RETURNING user_id;`
 
-	err := dbPool.QueryRow(ctx, sqlStatement, userDetails.Email, userDetails.PasswordHash, userDetails.FirstName, userDetails.LastName).Scan(&userId)
+	err := dbPool.QueryRow(ctx, sqlStatement, userDetails.Email, userDetails.PasswordHash, userDetails.FirstName, userDetails.LastName, userDetails.Role).Scan(&userId)
 	if err != nil {
 		errMsg := fmt.Sprintf("CreateUser: Couldn't insert user details. Error:%s!", err.Error())
 		displayMsg := fmt.Sprintf("Could not save user details for emailId: %s", userDetails.Email)
@@ -65,9 +65,9 @@ func (u *userDb) CreateUser(ctx context.Context, userDetails models.User) *model
 
 func (u *userDb) GetUserByUserId(ctx context.Context, userId int) (exists bool, user models.User, appError *models.ApplicationError) {
 
-	sqlStatement := `select u."user_id", u."email", u."password_hash", u."first_name", u."last_name" from users u where  u."user_id" = $1`
+	sqlStatement := `select u."user_id", u."email", u."password_hash", u."first_name", u."last_name", u."role" from users u where  u."user_id" = $1`
 
-	err := dbPool.QueryRow(ctx, sqlStatement, userId).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName)
+	err := dbPool.QueryRow(ctx, sqlStatement, userId).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName, &user.Role)
 	if err != nil {
 
 		if err == pgx.ErrNoRows {

@@ -51,6 +51,7 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 		PasswordHash: string(hashedPassword),
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
+		Role:         req.Role,
 	}
 
 	// Save user to the database
@@ -87,7 +88,9 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, displayMsg, nil)
 	}
 
-	token, err := utils.GenerateJWTForUser(user.ID)
+	fullName := fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+
+	token, err := utils.GenerateJWTForUser(user.ID, user.Role, fullName)
 	if err != nil {
 		errMsg := fmt.Sprintf("Error generating token! Error: %s", err.Error())
 		displayMsg := "Could not generate token"

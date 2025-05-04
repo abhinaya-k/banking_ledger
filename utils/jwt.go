@@ -2,6 +2,7 @@ package utils
 
 import (
 	"banking_ledger/config"
+	"banking_ledger/models"
 	"errors"
 	"strconv"
 	"time"
@@ -11,10 +12,14 @@ import (
 
 var jwtKey = []byte(config.JWT_SECRET)
 
-func GenerateJWTForUser(userId int) (string, error) {
-	claims := &jwt.RegisteredClaims{
-		Subject:   strconv.Itoa(userId),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+func GenerateJWTForUser(userId int, role string, name string) (string, error) {
+	claims := &models.CustomClaims{
+		Role: role,
+		Name: name,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   strconv.Itoa(userId),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
