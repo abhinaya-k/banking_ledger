@@ -29,11 +29,13 @@ type TransactionRequestKafka struct {
 }
 
 type TransactionCollection struct {
-	UserId          int       `bson:"userId"`
-	Amount          float64   `bson:"amount"`
-	TransactionType string    `bson:"transactionType"`
-	RequestId       uuid.UUID `bson:"requestId"`
-	TransactionTime int64     `bson:"transactionTime"`
+	UserId            int       `bson:"userId"`
+	Amount            float64   `bson:"amount"`
+	TransactionType   string    `bson:"transactionType"`
+	TransactionStatus string    `bson:"transactionStatus"`
+	TransactionMsg    string    `bson:"transactionMessage"`
+	RequestId         uuid.UUID `bson:"requestId"`
+	TransactionTime   int64     `bson:"transactionTime"`
 }
 
 type GetTransactionHistoryRequest struct {

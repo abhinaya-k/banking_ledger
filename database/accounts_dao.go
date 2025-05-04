@@ -14,8 +14,8 @@ type accountDb struct{}
 
 type accountDbInterface interface {
 	BeginTx(ctx context.Context) (pgx.Tx, error)
-	GetAccountByUserId(ctx context.Context, userId int) (exists bool, account models.Account, appError *models.ApplicationError)
-	CreateAccountForUser(ctx context.Context, userId int, balance int64) *models.ApplicationError
+	GetAccountByUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, account models.Account, appError *models.ApplicationError)
+	CreateAccountForUser(ctx context.Context, tx pgx.Tx, userId int, balance int64) *models.ApplicationError
 	GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, balance int64, appError *models.ApplicationError)
 	UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userId int, balance int64) *models.ApplicationError
 }
@@ -26,11 +26,11 @@ func init() {
 	AccDb = &accountDb{}
 }
 
-func (a *accountDb) GetAccountByUserId(ctx context.Context, userId int) (exists bool, account models.Account, appError *models.ApplicationError) {
+func (a *accountDb) GetAccountByUserId(ctx context.Context, tx pgx.Tx, userId int) (exists bool, account models.Account, appError *models.ApplicationError) {
 
 	sqlStatement := `select ac."account_id", ac."user_id", ac."balance" from accounts ac where ac."user_id" = $1`
 
-	err := dbPool.QueryRow(ctx, sqlStatement, userId).Scan(&account.AccountID, &account.UserID, &account.Balance)
+	err := tx.QueryRow(ctx, sqlStatement, userId).Scan(&account.AccountID, &account.UserID, &account.Balance)
 	if err != nil {
 
 		if err == pgx.ErrNoRows {
@@ -47,13 +47,13 @@ func (a *accountDb) GetAccountByUserId(ctx context.Context, userId int) (exists 
 	return true, account, nil
 }
 
-func (a *accountDb) CreateAccountForUser(ctx context.Context, userId int, balance int64) *models.ApplicationError {
+func (a *accountDb) CreateAccountForUser(ctx context.Context, tx pgx.Tx, userId int, balance int64) *models.ApplicationError {
 
 	var accountId int
 
 	sqlStatement := `INSERT INTO accounts (user_id, balance) VALUES ($1, $2) RETURNING account_id;`
 
-	err := dbPool.QueryRow(ctx, sqlStatement, userId, balance).Scan(&accountId)
+	err := tx.QueryRow(ctx, sqlStatement, userId, balance).Scan(&accountId)
 	if err != nil {
 		errMsg := fmt.Sprintf("CreateAccountForUser: Couldn't insert user account details. Error:%s!", err.Error())
 		displayMsg := fmt.Sprintf("Could not create account for userId: %d", userId)
