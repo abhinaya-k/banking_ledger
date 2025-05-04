@@ -22,13 +22,13 @@ func init() {
 
 func SetupRoutesMiddleware() {
 
-	Router.Use(middleware.LogRequest())
-	Router.Use(middleware.CorsMiddleware())
-
-	cognitoProtectedRoutes.Use(middleware.AuthTokenMiddleware())
+	cognitoProtectedRoutes.Use(middleware.CorsMiddleware())
 	cognitoProtectedRoutes.Use(middleware.LogRequest())
+	cognitoProtectedRoutes.Use(middleware.AuthTokenMiddleware())
 
+	userRoutes.Use(middleware.CorsMiddleware())
 	userRoutes.Use(middleware.LogRequest())
+	userRoutes.Use(middleware.AuthorizeApiKey(middleware.API_KEY))
 }
 
 func SetupHealthRoute() {
@@ -45,7 +45,7 @@ func SetupUserRoute() {
 func SetupCognitoProtectedRoutes() {
 
 	cognitoProtectedRoutes.POST("/v1/account", handlers.CreateAccount)
-	cognitoProtectedRoutes.PATCH("/account/v1/transaction", handlers.FundTransaction)
-	cognitoProtectedRoutes.POST("/v1/transactionHistory", handlers.GetTransactionHistory)
+	cognitoProtectedRoutes.PATCH("/v1/account/transaction", handlers.FundTransaction)
+	cognitoProtectedRoutes.POST("/v1/ledger", handlers.GetTransactionHistory)
 
 }
