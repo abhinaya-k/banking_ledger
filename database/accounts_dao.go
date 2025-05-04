@@ -40,7 +40,7 @@ func (a *accountDb) GetAccountByUserId(ctx context.Context, tx pgx.Tx, userId in
 		errMsg := fmt.Sprintf("GetAccountByUserId: Could not get account details from Database. Error:%s!", err.Error())
 		displayMsg := "Could not get account details for the user!"
 		logger.Log.Error(errMsg)
-		appError = utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError = utils.RenderAppError(ctx, 2001, errMsg, displayMsg, nil)
 		return false, account, appError
 	}
 
@@ -58,7 +58,7 @@ func (a *accountDb) CreateAccountForUser(ctx context.Context, tx pgx.Tx, userId 
 		errMsg := fmt.Sprintf("CreateAccountForUser: Couldn't insert user account details. Error:%s!", err.Error())
 		displayMsg := fmt.Sprintf("Could not create account for userId: %d", userId)
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError := utils.RenderAppError(ctx, 2002, errMsg, displayMsg, nil)
 		return appError
 	}
 
@@ -85,7 +85,7 @@ func (a *accountDb) GetBalanceForUserId(ctx context.Context, tx pgx.Tx, userId i
 		errMsg := fmt.Sprintf("GetBalanceForUserId: Could not get account details from Database. Error:%s!", err.Error())
 		displayMsg := "Could not get account balance for the user!"
 		logger.Log.Error(errMsg)
-		appError = utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError = utils.RenderAppError(ctx, 2003, errMsg, displayMsg, nil)
 		return false, accountBalance, appError
 	}
 
@@ -102,7 +102,7 @@ func (a *accountDb) UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userI
 		errMsg := fmt.Sprintf("UpdateBalanceForUserId: Could not update balance for userId: %d! Error:%s!", userId, err.Error())
 		displayMsg := "Could not update balance for the user!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError := utils.RenderAppError(ctx, 2004, errMsg, displayMsg, nil)
 		return appError
 	}
 
@@ -111,7 +111,7 @@ func (a *accountDb) UpdateBalanceForUserId(ctx context.Context, tx pgx.Tx, userI
 		errMsg := fmt.Sprintf("UpdateBalanceForUserId: No rows affected while updating balance for userId: %d!", userId)
 		displayMsg := "Could not update balance for the user!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError := utils.RenderAppError(ctx, 2005, errMsg, displayMsg, nil)
 		return appError
 	}
 

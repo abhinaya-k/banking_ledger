@@ -22,7 +22,7 @@ func RegisterUser(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("RegisterUser: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 3101, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -47,7 +47,7 @@ func UserLogin(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("UserLogin: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusInternalServerError, 3102, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return

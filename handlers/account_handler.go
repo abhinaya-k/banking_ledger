@@ -22,7 +22,7 @@ func CreateAccount(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("CreateAccount: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -32,7 +32,7 @@ func CreateAccount(c *gin.Context) {
 	if !exists {
 		errMsg := "CreateAccount: UserId not found in context claims"
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3002, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -42,7 +42,7 @@ func CreateAccount(c *gin.Context) {
 	if !ok {
 		errMsg := "CreateAccount: UserId found in context claims is not of correct type"
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3003, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -67,7 +67,7 @@ func FundTransaction(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("FundTransaction: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3004, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -77,7 +77,7 @@ func FundTransaction(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory-> Error: %s", err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3005, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -102,7 +102,7 @@ func GetTransactionHistory(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory: Request body validation fail.Request body:%s.Error:%s", utils.ConvertStructToString(input), err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3006, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -112,7 +112,7 @@ func GetTransactionHistory(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory-> Error: %s", err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3007, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
@@ -122,7 +122,7 @@ func GetTransactionHistory(c *gin.Context) {
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory-> Error: %s", err.Error())
 		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
+		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 3008, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return

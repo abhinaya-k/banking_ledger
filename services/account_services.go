@@ -27,7 +27,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 	if err != nil {
 		errMsg := "CreateAccountForUser: Could not begin transaction!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
@@ -57,7 +57,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 			if err != nil {
 				errMsg := fmt.Sprintf("CreateAccountForUser: Failed to insert transaction into MongoDB! Error: %s", err.Error())
 				logger.Log.Error(errMsg)
-				appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+				appError := utils.RenderAppError(ctx, 5002, errMsg, errMsg, nil)
 				misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 			}
 		}
@@ -74,7 +74,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 	if exists {
 		errMsg := "Account already exists for this user"
 		logger.Log.Error(errMsg)
-		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+		return utils.RenderApiError(ctx, http.StatusBadRequest, 5003, errMsg, "", nil)
 	}
 
 	balanceInPaise := int64(req.Balance * 100)
@@ -103,7 +103,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 		errMsg := fmt.Sprintf("CreateAccountForUser: Failed to insert transaction into MongoDB! Error: %s", err.Error())
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Internal Error"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5004, errMsg, errMsg, nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
@@ -112,7 +112,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 		errMsg := "CreateAccountForUser: Failed to commit transaction!"
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Internal Error"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5005, errMsg, errMsg, nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
@@ -129,7 +129,7 @@ func FundTransaction(ctx context.Context, userId int, req models.FundTransaction
 	if err != nil {
 		errMsg := "FundTransaction: Could not begin transaction!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5006, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
@@ -145,7 +145,7 @@ func FundTransaction(ctx context.Context, userId int, req models.FundTransaction
 	if !exists {
 		errMsg := "Account does not exists for this user!"
 		logger.Log.Error(errMsg)
-		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+		return utils.RenderApiError(ctx, http.StatusBadRequest, 5007, errMsg, "", nil)
 	}
 
 	kafkaMsg := models.TransactionRequestKafka{
@@ -166,7 +166,7 @@ func FundTransaction(ctx context.Context, userId int, req models.FundTransaction
 	if err := tx.Commit(ctx); err != nil {
 		errMsg := "FundTransaction: Failed to commit transaction!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5008, errMsg, errMsg, nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
@@ -181,7 +181,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 	if err != nil {
 		errMsg := "ProcessTransaction: Could not begin transaction!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5009, errMsg, "", nil)
 		misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return appError
 	}
@@ -211,7 +211,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 			if err != nil {
 				errMsg := fmt.Sprintf("ProcessTransaction: Failed to insert transaction into MongoDB! Error: %s", err.Error())
 				logger.Log.Error(errMsg)
-				appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+				appError := utils.RenderAppError(ctx, 5010, errMsg, errMsg, nil)
 				misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 			}
 		}
@@ -231,7 +231,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		errMsg := fmt.Sprintf("ProcessTransaction: Account details not found for user! UserId: %d", transaction.UserId)
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Failed to get balance for user"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5011, errMsg, "", nil)
 		return appError
 	}
 
@@ -239,7 +239,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		errMsg := fmt.Sprintf("ProcessTransaction: Insufficient balance for user! UserId: %d", transaction.UserId)
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Insufficient balance for user!"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5012, errMsg, errMsg, nil)
 		return appError
 	}
 
@@ -254,7 +254,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		errMsg := fmt.Sprintf("ProcessTransaction: Invalid Transaction Type! TransactionType: %s", transaction.TransactionType)
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Invalid Request!"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5013, errMsg, errMsg, nil)
 		return appError
 	}
 
@@ -282,7 +282,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		errMsg := fmt.Sprintf("ProcessTransaction: Failed to insert transaction into MongoDB! Error: %s", err.Error())
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Internal Error!"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5014, errMsg, errMsg, nil)
 		return appError
 	}
 
@@ -290,7 +290,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 		errMsg := "ProcessTransaction: Failed to commit transaction!"
 		logger.Log.Error(errMsg)
 		transactionErrMsg = "Internal Error!"
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5015, errMsg, errMsg, nil)
 		return appError
 	}
 
@@ -306,7 +306,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	if err != nil {
 		errMsg := "ProcessTransaction: Could not begin transaction!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5016, errMsg, "", nil)
 		misc.ProcessError(ctx, models.KAFKA_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
@@ -322,7 +322,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	if !exists {
 		errMsg := "Account does not exists for this user!"
 		logger.Log.Error(errMsg)
-		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 5017, errMsg, "", nil)
 	}
 
 	userExists, user, appError := database.UserDb.GetUserByUserId(ctx, userId)
@@ -334,7 +334,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	if !userExists {
 		errMsg := fmt.Sprintf("User does not exists UserId: %d!", userId)
 		logger.Log.Error(errMsg)
-		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 5018, errMsg, "", nil)
 	}
 
 	txCollection := database.GetCollection("transactions")
@@ -387,7 +387,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	if err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory: Failed to find transactions in MongoDB! Error: %s", err.Error())
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1111, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5019, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		apiError := utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 		return nil, apiError
@@ -400,7 +400,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 		if err := cursor.Decode(&transaction); err != nil {
 			errMsg := fmt.Sprintf("GetTransactionHistory: Failed to decode transaction! Error: %s", err.Error())
 			logger.Log.Error(errMsg)
-			appError := utils.RenderAppError(ctx, 1111, errMsg, "", nil)
+			appError := utils.RenderAppError(ctx, 5020, errMsg, "", nil)
 			misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 			apiError := utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 			return nil, apiError
@@ -421,7 +421,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	if err := cursor.Err(); err != nil {
 		errMsg := fmt.Sprintf("GetTransactionHistory: Cursor error! Error: %s", err.Error())
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1111, errMsg, "", nil)
+		appError := utils.RenderAppError(ctx, 5021, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, appError)
 		apiError := utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 		return nil, apiError
@@ -430,7 +430,7 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 	if err := tx.Commit(ctx); err != nil {
 		errMsg := "ProcessTransaction: Failed to commit transaction!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, errMsg, nil)
+		appError := utils.RenderAppError(ctx, 5022, errMsg, errMsg, nil)
 		return nil, utils.RenderApiErrorFromAppError(http.StatusInternalServerError, appError)
 	}
 

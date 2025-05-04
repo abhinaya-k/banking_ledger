@@ -38,7 +38,7 @@ func (u *userDb) GetUserByEmail(ctx context.Context, email string) (exists bool,
 		errMsg := fmt.Sprintf("GetUserByEmail: Could not get user details from Database. Error:%s!", err.Error())
 		displayMsg := fmt.Sprintf("Could not get user details for emailId: %s!", email)
 		logger.Log.Error(errMsg)
-		appError = utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError = utils.RenderAppError(ctx, 2201, errMsg, displayMsg, nil)
 		return false, user, appError
 	}
 
@@ -56,7 +56,7 @@ func (u *userDb) CreateUser(ctx context.Context, userDetails models.User) *model
 		errMsg := fmt.Sprintf("CreateUser: Couldn't insert user details. Error:%s!", err.Error())
 		displayMsg := fmt.Sprintf("Could not save user details for emailId: %s", userDetails.Email)
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError := utils.RenderAppError(ctx, 2202, errMsg, displayMsg, nil)
 		return appError
 	}
 
@@ -77,7 +77,7 @@ func (u *userDb) GetUserByUserId(ctx context.Context, userId int) (exists bool, 
 		errMsg := fmt.Sprintf("GetUserByUserId: Could not get user details from Database. Error:%s!", err.Error())
 		displayMsg := fmt.Sprintf("Could not get user details for userId: %d!", userId)
 		logger.Log.Error(errMsg)
-		appError = utils.RenderAppError(ctx, 1001, errMsg, displayMsg, nil)
+		appError = utils.RenderAppError(ctx, 2203, errMsg, displayMsg, nil)
 		return false, user, appError
 	}
 

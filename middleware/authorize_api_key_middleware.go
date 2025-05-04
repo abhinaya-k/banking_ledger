@@ -33,7 +33,7 @@ func AuthorizeApiKey(keyType API_KEY_TYPE) gin.HandlerFunc {
 		ctx := context.WithValue(c.Request.Context(), requestIDKey, requestId)
 
 		if xApiKey == "" {
-			apiError := utils.RenderApiError(ctx, http.StatusUnauthorized, 1001, "X-API-KEY missing in header!", "X-API-KEY missing in header!", nil)
+			apiError := utils.RenderApiError(ctx, http.StatusUnauthorized, 4001, "X-API-KEY missing in header!", "X-API-KEY missing in header!", nil)
 			c.Abort()
 			c.JSON(apiError.StatusCode, apiError.ApplicationError)
 			return
@@ -41,7 +41,7 @@ func AuthorizeApiKey(keyType API_KEY_TYPE) gin.HandlerFunc {
 
 		expectedApiKey, ok := apiKeys[keyType]
 		if !ok || xApiKey != expectedApiKey {
-			apiError := utils.RenderApiError(ctx, http.StatusUnauthorized, 1002, "API key mismatch!", "API key mismatch!", nil)
+			apiError := utils.RenderApiError(ctx, http.StatusUnauthorized, 4002, "API key mismatch!", "API key mismatch!", nil)
 			c.Abort()
 			c.JSON(apiError.StatusCode, apiError.ApplicationError)
 			return

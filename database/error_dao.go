@@ -31,7 +31,7 @@ func (d *errorDb) SaveDroppedMessage(ctx context.Context, droppedMessage models.
 		errMsg := fmt.Sprintf("SaveDroppedMessage:Could not write to topic dropped message database table.Error:%s", err.Error())
 		displayMsg := "Could not write to topic dropped message database table!"
 		logger.Log.Error(errMsg)
-		appError := utils.RenderAppError(ctx, 3001, errMsg, displayMsg, nil)
+		appError := utils.RenderAppError(ctx, 2101, errMsg, displayMsg, nil)
 		return appError
 	}
 
@@ -48,7 +48,7 @@ func (d *errorDb) ProcessErrorMessages(ctx context.Context, priority int, errorM
 		errMsg := fmt.Sprintf("ProcessErrorMessages:Could not write to errors table.Error:%s", err.Error())
 		displayMsg := "Could not write to errors table!"
 		logger.Log.Error(err.Error())
-		appError := utils.RenderAppError(ctx, 3002, errMsg, displayMsg, nil)
+		appError := utils.RenderAppError(ctx, 2102, errMsg, displayMsg, nil)
 		return appError
 	}
 

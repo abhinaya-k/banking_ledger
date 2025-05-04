@@ -20,7 +20,7 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 	if req.Email == "" || req.Password == "" {
 		errMsg := "email and password are required"
 		logger.Log.Error(errMsg)
-		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+		return utils.RenderApiError(ctx, http.StatusBadRequest, 5101, errMsg, "", nil)
 	}
 
 	// Check if user already exists
@@ -33,7 +33,7 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 	if exists {
 		errMsg := "user already exists with this email"
 		logger.Log.Error(errMsg)
-		return utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, "", nil)
+		return utils.RenderApiError(ctx, http.StatusBadRequest, 5102, errMsg, "", nil)
 	}
 
 	// Hash the password
@@ -42,7 +42,7 @@ func RegisterUser(ctx context.Context, req models.RegisterUserReqBody) *models.A
 		errMsg := fmt.Sprintf("Failed to generate password hash! Error: %s", err.Error())
 		logger.Log.Error(errMsg)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, nil)
-		return utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, "", nil)
+		return utils.RenderApiError(ctx, http.StatusInternalServerError, 5103, errMsg, "", nil)
 	}
 
 	// Create user model
@@ -76,7 +76,7 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 		errMsg := fmt.Sprintf("user not found for email: %s", req.Email)
 		displayMsg := "User not found! Please Register first"
 		logger.Log.Error(errMsg)
-		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, displayMsg, nil)
+		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 5104, errMsg, displayMsg, nil)
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
@@ -85,7 +85,7 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 		displayMsg := "Could not verify password"
 		logger.Log.Error(errMsg)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, nil)
-		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 1001, errMsg, displayMsg, nil)
+		return nil, utils.RenderApiError(ctx, http.StatusBadRequest, 5105, errMsg, displayMsg, nil)
 	}
 
 	fullName := fmt.Sprintf("%s %s", user.FirstName, user.LastName)
@@ -96,7 +96,7 @@ func UserLogin(ctx context.Context, req models.LoginRequestBody) (response *mode
 		displayMsg := "Could not generate token"
 		logger.Log.Error(errMsg)
 		misc.ProcessError(ctx, models.API_ERROR_REQUIRE_INTERVENTION, errMsg, nil)
-		return nil, utils.RenderApiError(ctx, http.StatusInternalServerError, 1001, errMsg, displayMsg, nil)
+		return nil, utils.RenderApiError(ctx, http.StatusInternalServerError, 5106, errMsg, displayMsg, nil)
 	}
 
 	apiResponse := models.LoginResponseBody{
