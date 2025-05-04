@@ -407,12 +407,14 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 		}
 
 		transactionHistory := models.TransactionHistory{
-			UserId:          transaction.UserId,
-			FirstName:       user.FirstName,
-			LastName:        user.LastName,
-			Amount:          transaction.Amount,
-			TransactionType: transaction.TransactionType,
-			TransactionTime: transaction.TransactionTime,
+			UserId:            transaction.UserId,
+			FirstName:         user.FirstName,
+			LastName:          user.LastName,
+			Amount:            transaction.Amount,
+			TransactionType:   transaction.TransactionType,
+			TransactionTime:   transaction.TransactionTime,
+			TransactionStatus: transaction.TransactionStatus,
+			TransactionMsg:    transaction.TransactionMsg,
 		}
 
 		transactions = append(transactions, transactionHistory)

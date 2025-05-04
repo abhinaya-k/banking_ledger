@@ -48,12 +48,14 @@ type GetTransactionHistoryRequest struct {
 }
 
 type TransactionHistory struct {
-	UserId          int     `json:"userId"`
-	FirstName       string  `json:"fistName"`
-	LastName        string  `json:"lastName"`
-	Amount          float64 `json:"amount"`
-	TransactionType string  `json:"transactionType"`
-	TransactionTime int64   `json:"transactionTime"`
+	UserId            int     `json:"userId"`
+	FirstName         string  `json:"fistName"`
+	LastName          string  `json:"lastName"`
+	Amount            float64 `json:"amount"`
+	TransactionType   string  `json:"transactionType"`
+	TransactionTime   int64   `json:"transactionTime"`
+	TransactionStatus string  `bson:"transactionStatus"`
+	TransactionMsg    string  `bson:"transactionMessage"`
 }
 
 type GetTransactionHistoryResponse struct {
