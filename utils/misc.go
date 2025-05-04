@@ -40,3 +40,17 @@ func CreateContextWithNewRequestId() (ctx context.Context) {
 	return ctx
 
 }
+
+func GetClaimFromContext[T any](c *gin.Context, key string) (T, error) {
+	val, exists := c.Get(key)
+	if !exists {
+		return *new(T), fmt.Errorf("%s not found in context", key)
+	}
+
+	castVal, ok := val.(T)
+	if !ok {
+		return *new(T), fmt.Errorf("%s in context has wrong type", key)
+	}
+
+	return castVal, nil
+}

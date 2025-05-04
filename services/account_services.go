@@ -162,7 +162,7 @@ func ProcessTransaction(ctx context.Context, transaction models.TransactionReque
 
 }
 
-func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransactionHistoryRequest) (*models.GetTransactionHistoryResponse, *models.ApiError) {
+func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransactionHistoryRequest, role string) (*models.GetTransactionHistoryResponse, *models.ApiError) {
 
 	exists, _, appError := database.AccDb.GetAccountByUserId(ctx, userId)
 	if appError != nil {
@@ -190,8 +190,10 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 
 	txCollection := database.GetCollection("transactions")
 
-	filter := bson.M{
-		"userId": userId,
+	filter := bson.M{}
+
+	if role != "admin" {
+		filter["userId"] = userId
 	}
 
 	var deposit string = "deposit"
@@ -242,8 +244,6 @@ func GetTransactionHistory(ctx context.Context, userId int, req models.GetTransa
 		return nil, apiError
 	}
 	defer cursor.Close(ctx)
-
-	logger.Log.Info("GetTransactionHistory: MongoDB query completed", zap.Any("cursor", cursor))
 
 	transactions := []models.TransactionHistory{}
 	for cursor.Next(ctx) {

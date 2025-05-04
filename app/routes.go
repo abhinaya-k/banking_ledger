@@ -46,6 +46,6 @@ func SetupCognitoProtectedRoutes() {
 
 	cognitoProtectedRoutes.POST("/v1/account", handlers.CreateAccount)
 	cognitoProtectedRoutes.PATCH("/v1/account/transaction", handlers.FundTransaction)
-	cognitoProtectedRoutes.POST("/v1/ledger", handlers.GetTransactionHistory)
+	cognitoProtectedRoutes.POST("/v1/account/ledger", handlers.GetTransactionHistory)
 
 }

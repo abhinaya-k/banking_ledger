@@ -64,6 +64,22 @@ func AuthTokenMiddleware() gin.HandlerFunc {
 			// Set userID in the context
 			c.Set("user_id", userID)
 
+			role, ok := claims["role"].(string) // jwt parses numbers as float64
+			if !ok {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims for role"})
+				c.Abort()
+				return
+			}
+			name, ok := claims["role"].(string) // jwt parses numbers as float64
+			if !ok {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims for name"})
+				c.Abort()
+				return
+			}
+
+			c.Set("role", role)
+			c.Set("name", name)
+
 			// Continue to next handler
 			c.Next()
 		} else {

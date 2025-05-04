@@ -73,19 +73,9 @@ func FundTransaction(c *gin.Context) {
 		return
 	}
 
-	user_id, exists := c.Get("user_id")
-	if !exists {
-		errMsg := "FundTransaction: UserId not found in context claims"
-		logger.Log.Error(errMsg)
-		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
-		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
-		c.JSON(apiError.StatusCode, apiError.ApplicationError)
-		return
-	}
-
-	userId, ok := user_id.(int)
-	if !ok {
-		errMsg := "FundTransaction: UserId found in context claims is not of correct type"
+	userId, err := utils.GetClaimFromContext[int](c, "user_id")
+	if err != nil {
+		errMsg := fmt.Sprintf("GetTransactionHistory-> Error: %s", err.Error())
 		logger.Log.Error(errMsg)
 		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
@@ -118,9 +108,9 @@ func GetTransactionHistory(c *gin.Context) {
 		return
 	}
 
-	user_id, exists := c.Get("user_id")
-	if !exists {
-		errMsg := "GetTransactionHistory: UserId not found in context claims"
+	userId, err := utils.GetClaimFromContext[int](c, "user_id")
+	if err != nil {
+		errMsg := fmt.Sprintf("GetTransactionHistory-> Error: %s", err.Error())
 		logger.Log.Error(errMsg)
 		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
@@ -128,17 +118,16 @@ func GetTransactionHistory(c *gin.Context) {
 		return
 	}
 
-	userId, ok := user_id.(int)
-	if !ok {
-		errMsg := "GetTransactionHistory: UserId found in context claims is not of correct type"
+	role, err := utils.GetClaimFromContext[string](c, "role")
+	if err != nil {
+		errMsg := fmt.Sprintf("GetTransactionHistory-> Error: %s", err.Error())
 		logger.Log.Error(errMsg)
 		apiError := utils.RenderApiError(ctx, http.StatusBadRequest, 2001, errMsg, "", nil)
 		misc.ProcessError(ctx, models.API_ERROR_NO_INTERVENTION_REQUIRED, errMsg, apiError)
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
 	}
-
-	apiResponse, apiError := services.GetTransactionHistory(ctx, userId, input)
+	apiResponse, apiError := services.GetTransactionHistory(ctx, userId, input, role)
 	if apiError != nil {
 		c.JSON(apiError.StatusCode, apiError.ApplicationError)
 		return
