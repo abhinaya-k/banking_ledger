@@ -9,7 +9,7 @@ type Account struct {
 }
 
 type CreateAccountRequest struct {
-	Balance float64 `json:"balance"`
+	InitialBalance float64 `json:"initialBalance" binding:"required,gt=0"`
 }
 
 type FundTransactionRequest struct {
@@ -54,8 +54,8 @@ type TransactionHistory struct {
 	Amount            float64 `json:"amount"`
 	TransactionType   string  `json:"transactionType"`
 	TransactionTime   int64   `json:"transactionTime"`
-	TransactionStatus string  `bson:"transactionStatus"`
-	TransactionMsg    string  `bson:"transactionMessage"`
+	TransactionStatus string  `json:"transactionStatus"`
+	TransactionMsg    string  `json:"transactionMessage"`
 }
 
 type GetTransactionHistoryResponse struct {

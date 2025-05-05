@@ -195,7 +195,7 @@ paths:
             schema:
               type: object
               properties:
-                balance:
+                initialBalance:
                   type: integer
                   example: 99.99
 
@@ -327,6 +327,6 @@ paths:
                               type: string
                               example: "Transaction completed successfully"
                       pagination:
-                        $ref: "#/components/schemas/PaginationResponse"    
+                        $ref: "#/components/schemas/Pagination"    
         401: 
           $ref: "#/components/responses/UnauthorizedError"

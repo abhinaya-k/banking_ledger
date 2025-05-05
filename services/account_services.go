@@ -43,7 +43,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 
 			transactionToLog := models.TransactionCollection{
 				UserId:            userId,
-				Amount:            req.Balance,
+				Amount:            req.InitialBalance,
 				TransactionType:   "deposit",
 				TransactionStatus: "failed",
 				TransactionMsg:    transactionErrMsg,
@@ -77,7 +77,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 		return utils.RenderApiError(ctx, http.StatusBadRequest, 5003, errMsg, "", nil)
 	}
 
-	balanceInPaise := int64(req.Balance * 100)
+	balanceInPaise := int64(req.InitialBalance * 100)
 
 	appError = database.AccDb.CreateAccountForUser(ctx, tx, userId, balanceInPaise)
 	if appError != nil {
@@ -88,7 +88,7 @@ func CreateAccountForUser(ctx context.Context, userId int, req models.CreateAcco
 
 	transactionToLog := models.TransactionCollection{
 		UserId:            userId,
-		Amount:            req.Balance,
+		Amount:            req.InitialBalance,
 		TransactionType:   "deposit",
 		TransactionStatus: "success",
 		TransactionMsg:    "Account created successfully",
