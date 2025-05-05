@@ -72,12 +72,35 @@ cd banking_ledger
 Set up environment variables in a `.env` file:
 
 ```env
-DB_HOST=localhost
+# Server Config
+SERVICE_NAME ="banking_ledger"
+SERVICE_BASE_PATH="/bankingLedger"
+ENV ="local"
+SERVER_PORT =8080
+
+# PostgreSQL Config
+DB_HOST="localhost"
 DB_PORT=5432
-DB_USER=yourusername
-DB_PASSWORD=yourpassword
-DB_NAME=banking_ledger
+DB_USER="yourusername"
+DB_PASSWORD="yourpassword"
+DB_NAME="banking_ledger"
+
+# Kafka Config
+KAFKA_BROKER="ledger-kafka:29092"
+KAFKA_USERNAME="admin"
+KAFKA_PASSWORD="admin"
+TRANSACTION_PROCESSING_KAFKA_TOPIC="your-kafka-topic"
+TRANSACTION_PROCESSING_KAFKA_CG = "your-kafka-consumer-group"
+
+# MongoDB Config
+MONGO_HOST="ledger-mongo"
+MONGO_PORT="27017"
+MONGO_DB_NAME="bankingLedger"
+
+# JWT Secret
 JWT_SECRET=your_jwt_secret_key
+
+API_KEY="SoTq5ZoWt8jjl8z7MoAGiHN1BATI5j6k"
 ```
 
 Start the services:
@@ -92,6 +115,6 @@ docker-compose up --build
 - `POST /bankingLedger/user/v1/login`: Login and receive JWT
 
 *NOTE: The above two apis are authenticated using an api key from the .env file and the apis below are authenticated using a JWT token*
-- `POST /v1/account`: Create a user-scoped account
-- `PATCH /v1/account/transaction`: Deposit or withdraw from own account
-- `POST /v1/account/ledger`: View transaction history (admins can view history of all users, user roles can only view their own transactions)
+- `POST /bankingLedger/v1/account`: Create a user-scoped account
+- `PATCH /bankingLedger/v1/account/transaction`: Deposit or withdraw from own account
+- `POST /bankingLedger/v1/account/ledger`: View transaction history (admins can view history of all users, user roles can only view their own transactions)
