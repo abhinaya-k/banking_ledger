@@ -100,7 +100,7 @@ MONGO_DB_NAME="bankingLedger"
 # JWT Secret
 JWT_SECRET=your_jwt_secret_key
 
-API_KEY="SoTq5ZoWt8jjl8z7MoAGiHN1BATI5j6k"
+API_KEY="your-secret-api-key"
 ```
 
 Start the services:
