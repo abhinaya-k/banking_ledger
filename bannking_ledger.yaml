@@ -1,0 +1,332 @@
+openapi: "3.0.0"
+info:
+  description: "API's for Banking Ledger"
+  version: "2.0.0"
+  title: "Banking Ledger Service"
+  contact:
+    email: "abhinayakunginkar.sitcomp@gmail.com"
+
+servers:
+  - url: "http://localhost:8080"
+    description: local Server
+
+components:
+  securitySchemes:
+    AuthorizationToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+
+  schemas:
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 50
+    
+    PaginationResponse:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          example: 1
+        perPage:
+          type: integer
+          example: 50
+        total:
+          type: integer
+          example: 1500
+
+  responses:
+    UnauthorizedError:
+      description: "Authentication error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: invalid token
+    
+    UnauthorizedApiKeyError:
+      description:  "Authentication error"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: error
+              message:
+                type: object
+                properties:
+                  errorCode: 
+                    type: integer
+                    example: 4002
+                  errorMessage:
+                    type: string
+                    example: "API key mismatch!"
+
+    
+              
+    SuccessResponseMessage:
+      description: Success response with message
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: success
+              message: 
+                type: string
+                example: success
+paths:
+  /bankingLedger/user/v1/register:
+    post:
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - "User APIs"
+      summary: "To register a user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: "Abhinaya"
+                lastName:
+                  type: string
+                  example: "Kunginkar"
+                email:
+                  type: string
+                  example: "abhinaya.k@gmail.com"
+                password:
+                  type: string
+                  example: "dsaihw49r4iojgoirjo"
+                role:
+                  type: string
+                  example: "admin/user"
+
+      responses:
+        200:
+          description: Success 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: success
+                  message: 
+                    type: string
+                    example: User Registered successfully
+        401: 
+          $ref: "#/components/responses/UnauthorizedApiKeyError"
+
+  /bankingLedger/user/v1/login:
+    post:
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - "User APIs"
+      summary: "To register a user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "abhinaya.k@gmail.com"
+                password:
+                  type: string
+                  example: "dsaihw49r4iojgoirjo"
+      responses:
+        200:
+          description: Success 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: success
+                  message: 
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        401: 
+          $ref: "#/components/responses/UnauthorizedApiKeyError"
+
+  /bankingLedger/v1/account:
+    post:
+      security:
+        - AuthorizationToken: []
+      tags:
+        - "Account APIs"
+      summary: "To create an account for an user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                balance:
+                  type: integer
+                  example: 99.99
+
+      responses:
+        200:
+          description: Success 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: success
+                  message: 
+                    type: string
+                    example: Account created successfully
+        401: 
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /bankingLedger/v1/account/transaction:
+    patch:
+      security:
+        - AuthorizationToken: []
+      tags:
+        - "Account APIs"
+      summary: "To deposit or withdraw balance from an account for an user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  example: 99.99
+                transactionType:
+                  type: string
+                  example: deposit/withdraw
+
+      responses:
+        200:
+          description: Success 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: success
+                  message: 
+                    type: string
+                    example: Transaction process queued
+        401: 
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /bankingLedger/v1/account/ledger:
+    post:
+      security:
+        - AuthorizationToken: []
+      tags:
+        - "Account APIs"
+      summary: "To get the ledger (transaction history) of an account for an user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: object
+                  properties:
+                    transactionType:
+                      type: string
+                      example: deposit/withdraw
+                    startTime:
+                      type: integer
+                      example: 1746344419
+                    endTime:
+                      type: integer
+                      example: 1746344419
+                pagination:
+                  $ref: "#/components/schemas/Pagination"
+
+      responses:
+        200:
+          description: Success 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: success
+                  message: 
+                    type: object
+                    properties:
+                      transactionHistory:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            userId:
+                              type: integer
+                              example: 12
+                            firstName:
+                              type: string
+                              example: "Abhinaya"
+                            lastName:
+                              type: string
+                              example: "Kunginkar"
+                            amount:
+                              type: integer
+                              example: 99.99
+                            transactionType:
+                              type: string
+                              example: deposit/withdraw
+                            transactionTime:
+                              type: integer
+                              example: 1746344419
+                            transactionStatus:
+                              type: string
+                              example: success/failed
+                            transactionMsg:
+                              type: string
+                              example: "Transaction completed successfully"
+                      pagination:
+                        $ref: "#/components/schemas/PaginationResponse"    
+        401: 
+          $ref: "#/components/responses/UnauthorizedError"
